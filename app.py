@@ -12,6 +12,7 @@ load_dotenv()
 api_key = os.getenv("BINANCE_API_KEY")
 api_secret = os.getenv("BINANCE_API_SECRET")
 client = UMFutures(key=api_key, secret=api_secret)
+SIGNAL_KEY = os.getenv("SIGNAL_KEY")
 
 app = Flask(__name__)
 
@@ -103,6 +104,14 @@ def webhook():
     check_position_mode()
     data = request.get_json()
     print("🔔 Webhook received:", data)
+     
+
+        # 🔐 Проверка авторизации
+    if not data or 'auth_key' not in data:
+        return jsonify({"status": "error", "message": "Missing auth_key"}), 403
+    if data['auth_key'] != SIGNAL_KEY:
+        return jsonify({"status": "error", "message": "Invalid auth_key"}), 403
+
 
     if not data or 'action' not in data or 'symbol' not in data or 'quantity' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
