@@ -6,8 +6,16 @@ from binance.um_futures import UMFutures
 from dotenv import load_dotenv
 import re
 from precision import adjust_quantity, load_step_sizes
+import logging
 
-# Загрузка переменных среды
+# ✅ Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+# ✅ Загрузка переменных среды
 load_dotenv()
 api_key = os.getenv("BINANCE_API_KEY")
 api_secret = os.getenv("BINANCE_API_SECRET")
@@ -15,7 +23,6 @@ client = UMFutures(key=api_key, secret=api_secret)
 SIGNAL_KEY = os.getenv("SIGNAL_KEY")
 
 app = Flask(__name__)
-
 DB_FILE = "signals.db"
 
 # ✅ Создание таблицы при первом запуске
@@ -35,15 +42,13 @@ def init_db():
             )
         ''')
 
-
 init_db()
 load_step_sizes()
-
 
 # ✅ Запись сигнала в БД
 def log_signal(action, symbol, quantity, result, message, strategy=''):
     import pytz
-    tz = pytz.timezone("Europe/London")  # или другая зона, если ты не в UK
+    tz = pytz.timezone("Europe/London")
     timestamp = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''
@@ -53,16 +58,8 @@ def log_signal(action, symbol, quantity, result, message, strategy=''):
             timestamp, action, symbol, quantity, result, message, '', strategy
         ))
 
-
-
 def open_position(symbol, side, quantity):
-    print("📤 Sending order with params:", {
-        'symbol': symbol,
-        'side': 'BUY' if side == 'LONG' else 'SELL',
-        'type': 'MARKET',
-        'quantity': quantity,
-        'positionSide': 'LONG' if side == 'LONG' else 'SHORT'
-    })
+    logger.info(f"📤 Sending order with params: {{'symbol': {symbol}, 'side': {'BUY' if side == 'LONG' else 'SELL'}, 'type': 'MARKET', 'quantity': {quantity}, 'positionSide': {side}}}")
     try:
         response = client.new_order(
             symbol=symbol,
@@ -71,10 +68,10 @@ def open_position(symbol, side, quantity):
             quantity=quantity,
             positionSide='LONG' if side == 'LONG' else 'SHORT'
         )
-        print("✅ Order placed:", response)
+        logger.info(f"✅ Order placed: {response}")
         return True, "Order placed successfully"
     except Exception as e:
-        print("❌ Binance error:", e)
+        logger.error(f"❌ Binance error: {e}")
         return False, str(e)
 
 def close_position(symbol, side, quantity):
@@ -86,41 +83,36 @@ def close_position(symbol, side, quantity):
             quantity=quantity,
             positionSide='LONG' if side == 'LONG' else 'SHORT'
         )
-        print("✅ Close order:", response)
+        logger.info(f"✅ Close order: {response}")
         return True, "Order closed successfully"
     except Exception as e:
-        print("❌ Binance error:", e)
+        logger.error(f"❌ Binance error: {e}")
         return False, str(e)
 
 def check_position_mode():
     try:
         mode = client.get_position_mode()
-        print("🔍 Hedge mode status (dualSidePosition):", mode)
+        logger.info(f"🔍 Hedge mode status (dualSidePosition): {mode}")
     except Exception as e:
-        print("❌ Failed to check position mode:", e)
+        logger.error(f"❌ Failed to check position mode: {e}")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     check_position_mode()
     data = request.get_json()
-    print("🔔 Webhook received:", data)
-     
+    logger.info(f"🔔 Webhook received: {data}")
 
-        # 🔐 Проверка авторизации
     if not data or 'auth_key' not in data:
         return jsonify({"status": "error", "message": "Missing auth_key"}), 403
     if data['auth_key'] != SIGNAL_KEY:
         return jsonify({"status": "error", "message": "Invalid auth_key"}), 403
-
-
-    if not data or 'action' not in data or 'symbol' not in data or 'quantity' not in data:
+    if 'action' not in data or 'symbol' not in data or 'quantity' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
 
     action = data['action']
     symbol = data['symbol']
     quantity_raw = float(data['quantity'])
-    quantity = adjust_quantity(data['symbol'], quantity_raw)
-
+    quantity = adjust_quantity(symbol, quantity_raw)
 
     if action == 'ENTER_LONG':
         success, msg = open_position(symbol, 'LONG', quantity)
@@ -133,16 +125,15 @@ def webhook():
     else:
         success, msg = False, '❓ Unknown action'
 
-    print("📌 STRATEGY:", data.get('strategy'))
-
     strategy = data.get('strategy', '')
+    logger.info(f"📌 STRATEGY: {strategy}")
+
     log_signal(action, symbol, quantity, 'success' if success else 'error', msg, strategy)
 
     return jsonify({'status': 'ok' if success else 'error', 'message': msg})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
 
 def extract_code(message):
     match = re.search(r'\(\d+,\s*(-?\d+)', message)

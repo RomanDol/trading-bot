@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Bot Control</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <meta name="theme-color" content="#111111">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #111;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 50px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+            border-radius: 8px;
+            padding: 8px 20px 1px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            max-width: 1000px;
+            margin: 0 auto 30px;
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #5c6667, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .bt, .sv_st{
+         font-size: 13.33px;
+         white-space: nowrap;
+         display: inline-block;
+        }
+        .bt span {
+            display: inline-block;
+            color: green;
+            transform: scale(-1, 1);
+        }
+        .sv_st span {
+            font-size: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.1em;
+            }
+        }
+
+        .legacy-controls {
+            text-align: center;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .legacy-controls form {
+            margin-bottom: 20px;
+        }
+
+        .sv_st, .bt, .legacy-controls button {
+            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+            border: 2px solid transparent;
+            color: white;
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+
+        .bt:hover, .legacy-controls button:hover {
+            border-color: #00ff88;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .logs-section {
+            max-width: 1000px;
+            margin: 20px auto;
+        }
+
+        .logs-section h3 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logs-section pre {
+            text-align: left;
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Control Panel</h1>
+    </div>
+
+    <!-- Legacy controls for compatibility -->
+    <div class="legacy-controls">
+       <form method="post">
+            <a href="/" class="bt"><span>➜</span> Back</a>
+            <button name="action" value="start">▶️ Start</button>
+            <button name="action" value="stop">⏹️ Stop</button>
+            <button name="action" value="restart">🔁 Restart</button>
+            <button name="action" value="logs">📄 Show Logs</button>
+            <p class="sv_st" >
+               {% if status == 'active' %}
+               <span style="color: green">●</span> Service: <span style="padding-left: 4px; color: green">active</span>
+               {% else %}
+               <span style="color: red">●</span> Service: <span style="padding-left: 4px; color: red">{{ status }}</span>
+               {% endif %}
+            </p>
+        </form>
+    </div>
+
+    {% if logs %}
+    <div class="logs-section">
+        <h3>📄 Last 30 Log Lines</h3>
+        <pre>{{ logs }}</pre>
+    </div>
+    {% endif %}
+
+    <script>
+        function performAction(action) {
+            // Create a form and submit it
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'action';
+            input.value = action;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+</body>
+</html>
