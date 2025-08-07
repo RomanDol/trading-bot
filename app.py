@@ -25,6 +25,9 @@ SIGNAL_KEY = os.getenv("SIGNAL_KEY")
 app = Flask(__name__)
 DB_FILE = "signals.db"
 
+
+
+
 # ✅ Создание таблицы при первом запуске
 def init_db():
     with sqlite3.connect(DB_FILE) as conn:
@@ -45,18 +48,32 @@ def init_db():
 init_db()
 load_step_sizes()
 
-# ✅ Запись сигнала в БД
+
+
+
+
+
+
+
 def log_signal(action, symbol, quantity, result, message, strategy=''):
-    import pytz
-    tz = pytz.timezone("Europe/London")
-    timestamp = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+    """Записывает сигнал в БД с временем в UTC"""
+    from datetime import datetime
+    
+    # Сохраняем время в UTC без timezone конвертации
+    utc_timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''
             INSERT INTO signals (timestamp, action, symbol, quantity, result, message, code, strategy)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            timestamp, action, symbol, quantity, result, message, '', strategy
+            utc_timestamp, action, symbol, quantity, result, message, '', strategy
         ))
+    
+    print(f"💾 Сохранено в БД: {utc_timestamp} UTC - {action} {symbol} {quantity}")
+
+
+
 
 def open_position(symbol, side, quantity):
     logger.info(f"📤 Sending order with params: {{'symbol': {symbol}, 'side': {'BUY' if side == 'LONG' else 'SELL'}, 'type': 'MARKET', 'quantity': {quantity}, 'positionSide': {side}}}")
@@ -74,6 +91,10 @@ def open_position(symbol, side, quantity):
         logger.error(f"❌ Binance error: {e}")
         return False, str(e)
 
+
+
+
+
 def close_position(symbol, side, quantity):
     try:
         response = client.new_order(
@@ -89,12 +110,19 @@ def close_position(symbol, side, quantity):
         logger.error(f"❌ Binance error: {e}")
         return False, str(e)
 
+
+
+
 def check_position_mode():
     try:
         mode = client.get_position_mode()
         logger.info(f"🔍 Hedge mode status (dualSidePosition): {mode}")
     except Exception as e:
         logger.error(f"❌ Failed to check position mode: {e}")
+
+
+
+
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -132,8 +160,14 @@ def webhook():
 
     return jsonify({'status': 'ok' if success else 'error', 'message': msg})
 
+
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
+
+
 
 def extract_code(message):
     match = re.search(r'\(\d+,\s*(-?\d+)', message)

@@ -1,190 +1,118 @@
-from flask import Flask, render_template, request, Response, jsonify
-import subprocess
-import sqlite3
+"""
+Flask веб-интерфейс для управления Trading Bot
+Основной файл с минимальной логикой - вся логика вынесена в модули
+"""
+from flask import Flask, render_template, request, Response
 import os
 from dotenv import load_dotenv
-import pytz
-from datetime import datetime
+from ui_routes import ROUTE_HANDLERS
+
 
 load_dotenv()
 
 app = Flask(__name__)
-SERVICE_NAME = "trading-bot"
-DB_FILE = "signals.db"
+app.config['JSON_AS_ASCII'] = False  # Поддержка UTF-8 в JSON
 
-def get_status():
-    result = subprocess.run(["systemctl", "is-active", SERVICE_NAME], stdout=subprocess.PIPE, text=True)
-    return result.stdout.strip()
-
-def get_logs():
-    return subprocess.getoutput(f"journalctl -u {SERVICE_NAME}.service -n 30 --no-pager")
-
-# 🏠 Main dashboard page
-@app.route('/')
-def dashboard():
-    return render_template('dashboard.html')
-
-# 🎛️ Control panel page
-@app.route('/control', methods=['GET', 'POST'])
-def control():
-    logs = ''
-    if request.method == 'POST':
-        action = request.form['action']
-        if action in ['start', 'stop', 'restart']:
-            subprocess.run(["systemctl", action, SERVICE_NAME])
-        elif action == 'logs':
-            logs = get_logs()
-    
-    return render_template('control.html', status=get_status(), logs=logs)
-
-# 📊 Signals history page
-@app.route('/signals')
-def signals():
-    from_date = request.args.get('from_date')
-    to_date = request.args.get('to_date')
-    action_filter = request.args.get('action')
-    symbol_filter = request.args.get('symbol')
-    result_filter = request.args.get('result')
-    strategy_filter = request.args.get('strategy')
-
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    query = "SELECT id, timestamp, action, symbol, quantity, result, strategy, message FROM signals"
-    conditions = []
-    params = []
-    
-    if from_date:
-        conditions.append("DATE(timestamp) >= DATE(?)")
-        params.append(from_date)
-    if to_date:
-        conditions.append("DATE(timestamp) <= DATE(?)")
-        params.append(to_date)
-    if strategy_filter:
-        conditions.append("strategy = ?")
-        params.append(strategy_filter)
-    if action_filter:
-        conditions.append("action = ?")
-        params.append(action_filter)
-    if symbol_filter:
-        conditions.append("symbol = ?")
-        params.append(symbol_filter)
-    if result_filter:
-        conditions.append("result = ?")
-        params.append(result_filter)
-    
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    query += " ORDER BY id DESC LIMIT 200"
-
-    cursor.execute(query, params)
-    raw_rows = cursor.fetchall()
-    conn.close()
-
-    parsed_rows = []
-    utc = pytz.utc
-    london = pytz.timezone("Europe/London")
-
-    for row in raw_rows:
-        try:
-            naive_dt = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
-            utc_dt = utc.localize(naive_dt)
-            local_dt = utc_dt.astimezone(london)
-            local_time = local_dt.strftime("%Y-%m-%d %H:%M:%S")
-        except Exception as e:
-            print("[Timezone ERROR]", e)
-            local_time = row[1]
-
-        parts = row[7].split(",", maxsplit=25)
-        parsed_rows.append([row[0], local_time, row[2], row[3], row[4], row[5], row[6], *parts])
-
-    return render_template('signals.html', 
-        rows=parsed_rows,
-        from_date_filter=from_date or '', 
-        to_date_filter=to_date or '',
-        action_filter=action_filter or '', 
-        symbol_filter=symbol_filter or '',
-        result_filter=result_filter or '', 
-        strategy_filter=strategy_filter or ''
-    )
-
-# 📊 API endpoint for live signals data
-@app.route('/signals_data')
-def signals_data():
-    from_date = request.args.get('from_date')
-    to_date = request.args.get('to_date')
-    action_filter = request.args.get('action')
-    symbol_filter = request.args.get('symbol')
-    result_filter = request.args.get('result')
-    strategy_filter = request.args.get('strategy')
-
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    query = "SELECT id, timestamp, action, symbol, quantity, result, strategy, message FROM signals"
-    conditions = []
-    params = []
-    
-    if from_date:
-        conditions.append("DATE(timestamp) >= DATE(?)")
-        params.append(from_date)
-    if to_date:
-        conditions.append("DATE(timestamp) <= DATE(?)")
-        params.append(to_date)
-    if strategy_filter:
-        conditions.append("strategy = ?")
-        params.append(strategy_filter)
-    if action_filter:
-        conditions.append("action = ?")
-        params.append(action_filter)
-    if symbol_filter:
-        conditions.append("symbol = ?")
-        params.append(symbol_filter)
-    if result_filter:
-        conditions.append("result = ?")
-        params.append(result_filter)
-    
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    query += " ORDER BY id DESC LIMIT 200"
-
-    cursor.execute(query, params)
-    raw_rows = cursor.fetchall()
-    conn.close()
-
-    parsed = []
-    utc = pytz.utc
-    london = pytz.timezone("Europe/London")
-
-    for row in raw_rows:
-        try:
-            naive_dt = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
-            utc_dt = utc.localize(naive_dt)
-            local_dt = utc_dt.astimezone(london)
-            local_time = local_dt.strftime("%Y-%m-%d %H:%M:%S")
-        except Exception as e:
-            local_time = row[1]
-
-        parts = row[7].split(",", maxsplit=25)
-        parsed.append([row[0], local_time, row[2], row[3], row[4], row[5], row[6], *parts])
-
-    return jsonify(parsed)
-
-# 🔐 Authentication
-USERNAME = os.getenv('UI_USERNAME')
-PASSWORD = os.getenv('UI_PASSWORD')
+# Настройки аутентификации
+USERNAME = os.getenv('UI_USERNAME', 'admin')
+PASSWORD = os.getenv('UI_PASSWORD', '1234')
 
 def check_auth(username, password):
+    """Проверка аутентификации"""
     return username == USERNAME and password == PASSWORD
 
 def authenticate():
-    return Response('Authentication required', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    """Запрос аутентификации"""
+    return Response(
+        'Authentication required', 401,
+        {'WWW-Authenticate': 'Basic realm="Trading Bot Login Required"'}
+    )
 
 @app.before_request
 def require_auth():
+    """Middleware для проверки аутентификации"""
+    # Пропускаем статические файлы
     if request.path.startswith('/static/'):
         return
+    
     auth = request.authorization
     if not auth or not check_auth(auth.username, auth.password):
         return authenticate()
 
+# === ОСНОВНЫЕ МАРШРУТЫ ===
+
+@app.route('/')
+def dashboard():
+    """Главная страница - дашборд"""
+    data = ROUTE_HANDLERS['dashboard_get']()
+    return render_template('dashboard.html', **data)
+
+@app.route('/control', methods=['GET', 'POST'])
+def control():
+    """Страница управления сервисом"""
+    if request.method == 'POST':
+        data = ROUTE_HANDLERS['control_post']()
+    else:
+        data = {'status': ROUTE_HANDLERS['dashboard_get']()['status'], 'logs': '', 'message': ''}
+    
+    return render_template('control.html', **data)
+
+@app.route('/signals')
+def signals():
+    """Страница истории сигналов"""
+    data = ROUTE_HANDLERS['signals_get']()
+    return render_template('signals.html', **data)
+
+# === API МАРШРУТЫ ===
+
+@app.route('/signals_data')
+def signals_data():
+    """API: Получение данных сигналов (AJAX)"""
+    return ROUTE_HANDLERS['signals_data']()
+
+@app.route('/save_columns_config', methods=['POST'])
+def save_columns_config():
+    """API: Сохранение конфигурации колонок"""
+    return ROUTE_HANDLERS['save_columns_config']()
+
+@app.route('/reset_columns', methods=['POST'])
+def reset_columns():
+    """API: Сброс конфигурации колонок"""
+    return ROUTE_HANDLERS['reset_columns']()
+
+@app.route('/get_columns_config')
+def get_columns_config():
+    """API: Получение конфигурации колонок"""
+    return ROUTE_HANDLERS['get_columns_config']()
+
+# === ФИЛЬТРЫ JINJA2 ===
+
+@app.template_filter('tojsonfilter')
+def tojson_filter(obj):
+    """Фильтр для преобразования объекта в JSON для JavaScript"""
+    import json
+    return json.dumps(obj, ensure_ascii=False)
+
+# === ОБРАБОТЧИКИ ОШИБОК ===
+
+@app.errorhandler(404)
+def not_found(error):
+    """Обработчик 404 ошибки"""
+    return render_template('error.html', 
+                         error_code=404, 
+                         error_message="Страница не найдена"), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Обработчик 500 ошибки"""
+    return render_template('error.html', 
+                         error_code=500, 
+                         error_message="Внутренняя ошибка сервера"), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8888)
+    print("🚀 Запуск Trading Bot UI...")
+    print(f"👤 Пользователь: {USERNAME}")
+    print(f"🔐 Пароль: {'*' * len(PASSWORD)}")
+    print(f"🌐 Адрес: http://localhost:8888")
+    
+    app.run(host='0.0.0.0', port=8888, debug=True)

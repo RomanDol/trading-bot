@@ -7,128 +7,154 @@
     <meta name="theme-color" content="#111111">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
-            background: #111; 
-            color: white; 
+            background: #111; color: white; 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             padding: 30px; 
         }
         
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-            }
-        }
-        
         .header {
-            text-align: center;
+            text-align: center; 
             background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
-            border-radius: 8px;
-            padding: 8px 20px 1px;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            border-radius: 8px; 
+            padding: 8px 20px 1px; 
             max-width: 1000px;
             margin: 0 auto 30px;
         }
         
         .header h1 {
-            font-size: 1.5em;
+            font-size: 1.5em; 
             margin-bottom: 10px;
             background: linear-gradient(45deg, #5c6667, #00ccff);
-            -webkit-background-clip: text;
+            -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
         .controls {
-            text-align: center;
-            margin-bottom: 30px;
+            text-align: center; 
+            margin-bottom: 30px; 
             max-width: 1200px;
-            margin-left: auto;
+            margin-left: auto; 
             margin-right: auto;
         }
         
-        .controls form {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .controls input {
-            background: #222;
-            border: 1px solid #444;
-            color: rgb(128, 127, 127);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        .controls .rst {
-            color: #888;
-            text-decoration: none;
-            padding: 8px 16px;
-        }
-        
-        .controls .rst:hover {
-            color: #fff;
-        }
-        
-        .back-btn, .controls button {
+        .btn {
             background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
-            border: 2px solid transparent;
+            border: 2px solid transparent; 
             color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 8px 16px; 
+            border-radius: 6px; 
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s ease; 
             font-size: 14px;
-            text-decoration: none;
+            text-decoration: none; 
+            margin: 5px;
+            display: inline-block;
         }
         
-        .back-btn:hover, .controls button:hover {
+        .btn:hover {
             border-color: #00ff88;
             box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2);
         }
-        .back-btn span {
-            display: inline-block;
-            color: green;
-            transform: scale(-1, 1);
+        
+        .btn.active { 
+            border-color: #00ff88; 
         }
         
+        .columns-panel { 
+            background: #222; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            display: none; 
+            max-width: 1000px; 
+            margin-left: auto; 
+            margin-right: auto;
+        }
+        
+        .columns-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 10px; 
+            margin-top: 10px; 
+        }
+        
+        .column-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 8px;
+            background: #333; 
+            border-radius: 4px;
+        }
+        
+        .column-item input[type="checkbox"] { 
+            transform: scale(1.2); 
+        }
+        
+        .column-item input[type="number"] { 
+            width: 50px; 
+            background: #444; 
+            color: white; 
+            border: 1px solid #555; 
+            padding: 2px 4px; 
+            border-radius: 3px;
+        }
+        
+        .filter-form {
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center;
+            gap: 10px; 
+            align-items: center; 
+            margin-bottom: 20px;
+        }
+        
+        .filter-form input {
+            background: #222; 
+            border: 1px solid #444; 
+            color: #aaa;
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            font-size: 14px;
+        }
         
         .scroll-table { 
             max-height: 70vh; 
             overflow: auto; 
             border-radius: 8px;
             border: 1px solid #333;
+            width: fit-content;
+            max-width: 100%;
+            margin: 0 auto;
         }
         
         table { 
-            width: 100%; 
             border-collapse: collapse; 
-            min-width: 1000px; 
-            font-size: 13px; 
+            font-size: 13px;
+            table-layout: auto;
+            width: auto;
+            min-width: 0;
         }
         
         th, td { 
-            padding: 8px 6px; 
+            padding: 8px 12px; 
             text-align: left; 
             white-space: nowrap; 
             border-bottom: 1px solid #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        th { 
+        th {
             background: #333; 
-            position: sticky;
-            top: 0;
+            position: sticky; 
+            top: 0; 
             z-index: 10;
+            font-weight: bold;
+            min-width: fit-content;
         } 
         
         tr:nth-child(even) { 
@@ -139,131 +165,366 @@
             background: #1a1a1a; 
         }
         
-        tr:hover {
-            background: #2a2a2a;
+        tr:hover { 
+            background: #2a2a2a; 
         }
         
-        .status-success {
-            color: lime;
+        .status-success { 
+            color: lime; 
         }
         
-        .status-error {
-            color: #ff6b6b;
+        .status-error { 
+            color: #ff6b6b; 
+        }
+        
+        .hidden-column { 
+            display: none !important; 
         }
         
         @media (max-width: 768px) {
-            .controls form {
-                /* flex-direction: column; */
-                gap: 15px;
+            body { 
+                padding: 20px; 
             }
-            
-            .controls input {
-                width: 100%;
-                max-width: 200px;
+            .filter-form { 
+                flex-direction: column; 
+                gap: 15px; 
             }
-            
-            table {
-                font-size: 11px;
+            .filter-form input { 
+                width: 100%; 
+                max-width: 200px; 
             }
-            
-            th, td {
-                padding: 6px 4px;
+            table { 
+                font-size: 11px; 
+            }
+            th, td { 
+                padding: 6px 4px; 
             }
         }
     </style>
 </head>
 <body>
-    <!-- <a href="/" class="back-btn">← Dashboard</a> -->
+    <!-- Передаем данные через data-атрибуты -->
+    <div id="app-data" 
+         data-columns-config="{{ columns_config | tojsonfilter | e }}"
+         style="display: none;"></div>
+
     <div class="header">
-        <h1>Signal History</h1>
+        <h1>📊 Signal History</h1>
     </div>
     
     <div class="controls">
-        <form method="get">
-            <!-- <a href="/" class="back-btn">← Bakc</a> -->
-            <a href="/" class="back-btn"><span>➜</span> Back</a>
-            <input name="strategy" placeholder="Strategy" value="{{ strategy_filter }}" style="width:120px;">
-            <input name="action" placeholder="Action" value="{{ action_filter }}" style="width:120px;">
-            <input name="symbol" placeholder="Symbol" value="{{ symbol_filter }}" style="width:120px;">
-            <input name="result" placeholder="Result" value="{{ result_filter }}" style="width:120px;">
-            <input name="from_date" type="date" value="{{ from_date_filter }}" style="width:140px;">
-            <input name="to_date" type="date" value="{{ to_date_filter }}" style="width:140px;">
-            <button type="submit">🔍 Filter</button>
-            <a href="/signals" class="rst">🧹 Reset</a>
-        </form>
+        <a href="/" class="btn">
+            <span style="transform: scale(-1, 1); display: inline-block; color: green;">➜</span> Back
+        </a>
+        <button id="columns-btn" class="btn" onclick="toggleColumnsPanel()">⚙️ Configure Columns</button>
+        <button id="refresh-btn" class="btn" onclick="toggleAutoRefresh()">⏸️ Pause</button>
+        <button class="btn" onclick="resetColumns()">🔄 Reset Columns</button>
     </div>
+    
+    <div id="columns-panel" class="columns-panel">
+        <h3>📊 Column Configuration</h3>
+        <div class="columns-grid" id="columns-grid">
+            <!-- Динамически заполняется через JavaScript -->
+        </div>
+        <p style="font-size: 12px; color: #888; margin-top: 10px;">
+            ✓ Checkboxes control visibility • Numbers set order • Changes save automatically
+        </p>
+    </div>
+    
+    <form method="get" class="filter-form">
+        {% set strategy_val = filters.strategy or '' %}
+        {% set action_val = filters.action or '' %}
+        {% set symbol_val = filters.symbol or '' %}
+        {% set result_val = filters.result or '' %}
+        {% set from_date_val = filters.from_date or '' %}
+        {% set to_date_val = filters.to_date or '' %}
+        
+        <input name="strategy" placeholder="Strategy" value="{{ strategy_val }}" style="width:120px;">
+        <input name="action" placeholder="Action" value="{{ action_val }}" style="width:120px;">
+        <input name="symbol" placeholder="Symbol" value="{{ symbol_val }}" style="width:120px;">
+        <input name="result" placeholder="Result" value="{{ result_val }}" style="width:120px;">
+        <input name="from_date" type="date" value="{{ from_date_val }}" style="width:140px;">
+        <input name="to_date" type="date" value="{{ to_date_val }}" style="width:140px;">
+        <button type="submit" class="btn">🔍 Filter</button>
+        <a href="/signals" class="btn">🧹 Reset</a>
+    </form>
     
     <div class="scroll-table">
         <table>
             <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                    <th>Action</th>
-                    <th>Symbol</th>
-                    <th>Qty</th>
-                    <th>Result</th>
-                    <th>Strategy</th>
-                    {% for i in range(1, 26) %}
-                    <th>Field {{ i }}</th>
-                    {% endfor %}
+                <tr id="table-header">
+                    <!-- Заголовки создаются динамически через JavaScript -->
                 </tr>
             </thead>
             <tbody id="signal-body">
-                {% for row in rows %}
-                <tr>
-                    {% for cell in row %}
-                    <td class="{{ 'status-success' if loop.index == 6 and cell == 'success' else ('status-error' if loop.index == 6 and cell == 'error' else '') }}">
-                        {% if loop.index == 6 %}
-                            {{ "✅ success" if cell == "success" else "❌ error" }}
-                        {% else %}
-                            {{ cell }}
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
+                <!-- Данные загружаются через AJAX -->
             </tbody>
         </table>
     </div>
 
     <script>
+        // Получаем конфигурацию из data-атрибута
+        let columnsConfig = {};
+        try {
+            const appData = document.getElementById('app-data');
+            const configData = appData.getAttribute('data-columns-config');
+            columnsConfig = JSON.parse(configData);
+        } catch (e) {
+            console.error('Ошибка загрузки конфигурации колонок:', e);
+            // Резервная конфигурация
+            columnsConfig = {
+                'id': {'name': '#', 'visible': true, 'order': 0},
+                'timestamp': {'name': 'Time', 'visible': true, 'order': 1},
+                'action': {'name': 'Action', 'visible': true, 'order': 2},
+                'symbol': {'name': 'Symbol', 'visible': true, 'order': 3},
+                'quantity': {'name': 'Qty', 'visible': true, 'order': 4},
+                'result': {'name': 'Result', 'visible': true, 'order': 5},
+                'strategy': {'name': 'Strategy', 'visible': true, 'order': 6}
+            };
+        }
+        
+        let autoRefresh = true;
+        let refreshInterval;
+        
+        function toggleColumnsPanel() {
+            const panel = document.getElementById('columns-panel');
+            const btn = document.getElementById('columns-btn');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                btn.classList.add('active');
+            } else {
+                panel.style.display = 'none';
+                btn.classList.remove('active');
+            }
+        }
+        
+        function updateColumnVisibility(columnKey, isVisible) {
+            columnsConfig[columnKey].visible = isVisible;
+            applyColumnVisibility();
+            saveColumnsConfig();
+        }
+        
+        function updateColumnOrder(columnKey, order) {
+            columnsConfig[columnKey].order = parseInt(order);
+            applyColumnVisibility();
+            saveColumnsConfig();
+        }
+        
+        function createTableHeaders() {
+            const headerRow = document.getElementById('table-header');
+            headerRow.innerHTML = '';
+            
+            // Сортируем колонки по порядку
+            const sortedColumns = Object.entries(columnsConfig)
+                .sort((a, b) => a[1].order - b[1].order);
+            
+            sortedColumns.forEach(([key, config]) => {
+                const th = document.createElement('th');
+                th.setAttribute('data-column', key);
+                th.textContent = config.name;
+                
+                if (!config.visible) {
+                    th.classList.add('hidden-column');
+                }
+                
+                headerRow.appendChild(th);
+            });
+        }
+        
+        function applyColumnVisibility() {
+            // Обновляем заголовки
+            createTableHeaders();
+            
+            // Обновляем ячейки данных
+            Object.entries(columnsConfig).forEach(([key, config]) => {
+                const elements = document.querySelectorAll('[data-column="' + key + '"]');
+                elements.forEach(el => {
+                    if (config.visible) {
+                        el.classList.remove('hidden-column');
+                    } else {
+                        el.classList.add('hidden-column');
+                    }
+                });
+            });
+        }
+        
+        async function saveColumnsConfig() {
+            try {
+                const response = await fetch('/save_columns_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(columnsConfig)
+                });
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    console.error('Ошибка сохранения:', result.message);
+                }
+            } catch (e) {
+                console.error('Ошибка сохранения конфигурации:', e);
+            }
+        }
+        
+        async function resetColumns() {
+            try {
+                const response = await fetch('/reset_columns', { method: 'POST' });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    columnsConfig = result.config;
+                    updateColumnsPanel();
+                    applyColumnVisibility();
+                    await fetchSignals();
+                }
+            } catch (e) {
+                console.error('Ошибка сброса конфигурации:', e);
+            }
+        }
+        
+        function updateColumnsPanel() {
+            const grid = document.getElementById('columns-grid');
+            grid.innerHTML = '';
+            
+            Object.entries(columnsConfig).forEach(([key, config]) => {
+                const item = document.createElement('div');
+                item.className = 'column-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = config.visible;
+                checkbox.onchange = function() {
+                    updateColumnVisibility(key, this.checked);
+                };
+                
+                const label = document.createElement('span');
+                label.textContent = config.name;
+                
+                const orderInput = document.createElement('input');
+                orderInput.type = 'number';
+                orderInput.value = config.order;
+                orderInput.min = '0';
+                orderInput.max = '20';
+                orderInput.style.marginLeft = 'auto';
+                orderInput.onchange = function() {
+                    updateColumnOrder(key, this.value);
+                };
+                
+                item.appendChild(checkbox);
+                item.appendChild(label);
+                item.appendChild(orderInput);
+                grid.appendChild(item);
+            });
+        }
+        
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const btn = document.getElementById('refresh-btn');
+            
+            if (autoRefresh) {
+                // Автообновление РАБОТАЕТ
+                btn.textContent = '⏸️ Pause';           // Показываем что можно поставить на паузу
+                btn.classList.remove('active');        // БЕЗ подсветки (нормальная работа)
+                startAutoRefresh();
+                console.log('🔄 Автообновление запущено');
+            } else {
+                // Автообновление ОСТАНОВЛЕНО
+                btn.textContent = '⏸️ Pause';           // Показываем что сейчас пауза
+                btn.classList.add('active');           // С ПОДСВЕТКОЙ (на паузе!)
+                stopAutoRefresh();
+                console.log('⏸️ Автообновление на паузе');
+            }
+        }
+        
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(fetchSignals, 3000);
+        }
+        
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+        
         async function fetchSignals() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const res = await fetch("/signals_data?" + params.toString());
-                const rows = await res.json();
+                const data = await res.json();
+                
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    return;
+                }
+                
                 const tableBody = document.getElementById("signal-body");
                 tableBody.innerHTML = "";
                 
-                rows.forEach((row) => {
+                data.rows.forEach((row) => {
                     const tr = document.createElement("tr");
-                    row.forEach((cell, j) => {
-                        const td = document.createElement("td");
-
-                        if (j === 0) {
-                            // Convert timestamp from UTC to local time
-                            const utcDate = new Date(cell + " UTC");
-                            td.textContent = utcDate.toLocaleString();
-                        } else if (j === 5) {
-                            td.textContent = cell === "success" ? "✅ success" : "❌ error";
-                            td.className = cell === "success" ? "status-success" : "status-error";
-                        } else {
-                            td.textContent = cell;
+                    
+                    // Создаем ячейки в порядке конфигурации
+                    const sortedColumns = Object.entries(columnsConfig)
+                        .sort((a, b) => a[1].order - b[1].order);
+                        
+                    sortedColumns.forEach(([columnKey, config]) => {
+                        const columnIndex = data.column_map[columnKey];
+                        if (columnIndex !== undefined) {
+                            const td = document.createElement("td");
+                            td.setAttribute('data-column', columnKey);
+                            
+                            let cellValue = row[columnIndex];
+                            
+                            // Специальная обработка для определенных колонок
+                            if (columnKey === 'timestamp') {
+                                try {
+                                    // Время из БД в формате: 2025-08-07 01:03:16 (UTC)
+                                    // Создаем дату явно указывая что это UTC
+                                    const utcDate = new Date(cellValue.replace(' ', 'T') + 'Z');
+                                    
+                                    // Форматируем в локальном часовом поясе пользователя
+                                    const day = String(utcDate.getDate()).padStart(2, '0');
+                                    const month = String(utcDate.getMonth() + 1).padStart(2, '0');
+                                    const year = utcDate.getFullYear();
+                                    const hours = String(utcDate.getHours()).padStart(2, '0');
+                                    const minutes = String(utcDate.getMinutes()).padStart(2, '0');
+                                    const seconds = String(utcDate.getSeconds()).padStart(2, '0');
+                                    
+                                    td.textContent = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+                                } catch (e) {
+                                    // Если не удалось преобразовать, показываем как есть
+                                    td.textContent = cellValue || '';
+                                }
+                            } else if (columnKey === 'result') {
+                                td.textContent = cellValue === "success" ? "✅ success" : "❌ error";
+                                td.className = cellValue === "success" ? "status-success" : "status-error";
+                            } else {
+                                td.textContent = cellValue || '';
+                            }
+                            
+                            tr.appendChild(td);
                         }
-
-                        tr.appendChild(td);
                     });
+                    
                     tableBody.appendChild(tr);
                 });
+                
+                applyColumnVisibility();
+                    
             } catch (error) {
                 console.error("Failed to fetch signals:", error);
             }
         }
         
-        // Auto-refresh every 3 seconds
-        setInterval(fetchSignals, 3000);
-        window.onload = fetchSignals;
+        // Инициализация при загрузке страницы
+        window.addEventListener('load', function() {
+            console.log('Загружена конфигурация колонок:', columnsConfig);
+            updateColumnsPanel();
+            createTableHeaders();
+            fetchSignals();
+            if (autoRefresh) {
+                startAutoRefresh();
+            }
+        });
     </script>
 </body>
 </html>
