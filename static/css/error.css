@@ -1,0 +1,142 @@
+/* ===== СТИЛИ СПЕЦИФИЧНЫЕ ДЛЯ ERROR PAGE ===== */
+
+/* Переопределяем базовые стили для центрирования */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.error-container {
+    text-align: center;
+    max-width: 600px;
+    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+    border-radius: 12px;
+    padding: 40px;
+    border: 2px solid #333;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.error-code {
+    font-size: 4em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.error-message {
+    font-size: 1.3em;
+    margin-bottom: 30px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.error-description {
+    font-size: 1em;
+    margin-bottom: 40px;
+    color: #888;
+    line-height: 1.6;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.actions .btn {
+    min-width: 120px;
+}
+
+.actions .btn-primary {
+    background: linear-gradient(145deg, #00ff88, #00cc70);
+    color: #111;
+    font-weight: 500;
+}
+
+.actions .btn-primary:hover {
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+    transform: translateY(-1px);
+}
+
+.actions .btn:hover {
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+}
+
+/* ===== АНИМАЦИИ ===== */
+
+.error-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-code {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* ===== МОБИЛЬНЫЕ УСТРОЙСТВА ===== */
+
+@media (max-width: 480px) {
+    .error-code {
+        font-size: 3em;
+    }
+    
+    .error-message {
+        font-size: 1.1em;
+    }
+    
+    .error-container {
+        padding: 30px 20px;
+    }
+    
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .actions .btn {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 320px) {
+    .error-container {
+        padding: 20px 15px;
+    }
+    
+    .error-code {
+        font-size: 2.5em;
+    }
+}

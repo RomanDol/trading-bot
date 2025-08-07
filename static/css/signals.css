@@ -1,0 +1,241 @@
+/* ===== СТИЛИ СПЕЦИФИЧНЫЕ ДЛЯ SIGNALS PAGE ===== */
+
+/* ===== ПАНЕЛЬ КОНФИГУРАЦИИ КОЛОНОК ===== */
+
+.columns-panel {
+    background: #222;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #333;
+}
+
+.columns-panel h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #00ccff;
+}
+
+.columns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.column-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #333;
+    border-radius: 4px;
+    border: 1px solid #444;
+    transition: border-color 0.2s ease;
+}
+
+.column-item:hover {
+    border-color: #555;
+}
+
+.column-item input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.column-item input[type="number"] {
+    width: 50px;
+    background: #444;
+    color: white;
+    border: 1px solid #555;
+    padding: 2px 4px;
+    border-radius: 3px;
+    margin-left: auto;
+}
+
+.column-item input[type="number"]:focus {
+    border-color: #00ff88;
+    outline: none;
+}
+
+.column-item span {
+    flex: 1;
+    font-size: 13px;
+}
+
+.columns-help {
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ===== ФОРМА ФИЛЬТРОВ ===== */
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-form input {
+    background: #222;
+    border: 1px solid #444;
+    color: #aaa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.filter-form input:focus {
+    border-color: #00ff88;
+    color: white;
+    outline: none;
+}
+
+/* ===== ТАБЛИЦА СИГНАЛОВ ===== */
+
+.scroll-table {
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.scroll-table table {
+    table-layout: auto;
+    width: auto;
+    min-width: 0;
+}
+
+.scroll-table th,
+.scroll-table td {
+    padding: 8px 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: fit-content;
+}
+
+.scroll-table th {
+    font-weight: bold;
+    min-width: fit-content;
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ КОЛОНКИ ===== */
+
+/* Колонка extra_data */
+.scroll-table td[data-column="extra_data"] {
+    max-width: 200px;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.scroll-table td[data-column="extra_data"] small {
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* JSON колонки */
+.scroll-table td[data-column^="json_"] {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    max-width: 150px;
+}
+
+.scroll-table td[data-column^="json_"] .json-empty {
+    color: #666;
+    font-style: italic;
+}
+
+/* Колонка timestamp */
+.scroll-table td[data-column="timestamp"] {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    min-width: 140px;
+}
+
+/* Колонка result */
+.scroll-table td[data-column="result"] {
+    font-weight: 500;
+}
+
+/* ===== СТАТУСЫ И ИНДИКАТОРЫ ===== */
+
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-indicator.success {
+    background-color: #00ff88;
+}
+
+.status-indicator.error {
+    background-color: #ff6b6b;
+}
+
+/* ===== АНИМАЦИИ ===== */
+
+.refresh-animation {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.column-item.drag-over {
+    border-color: #00ff88;
+    background: #2a3a2a;
+}
+
+/* ===== МОБИЛЬНЫЕ УСТРОЙСТВА ===== */
+
+@media (max-width: 768px) {
+    body {
+        padding: 20px;
+    }
+    
+    .filter-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .filter-form input {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .columns-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .scroll-table table {
+        font-size: 11px;
+        min-width: 1000px;
+    }
+    
+    .scroll-table th,
+    .scroll-table td {
+        padding: 6px 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .controls .btn {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+    }
+}

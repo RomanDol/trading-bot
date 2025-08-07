@@ -1,45 +1,22 @@
 """
 Flask веб-интерфейс для управления Trading Bot
-Основной файл с минимальной логикой - вся логика вынесена в модули
+Упрощенная версия с выносом логики в модули
 """
-from flask import Flask, render_template, request, Response
-import os
-from dotenv import load_dotenv
-from ui_routes import ROUTE_HANDLERS
-
-
-load_dotenv()
+from flask import Flask, render_template, request
+from ui.auth import require_auth
+from ui.routes import ROUTE_HANDLERS
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False  # Поддержка UTF-8 в JSON
 
-# Настройки аутентификации
-USERNAME = os.getenv('UI_USERNAME', 'admin')
-PASSWORD = os.getenv('UI_PASSWORD', '1234')
-
-def check_auth(username, password):
-    """Проверка аутентификации"""
-    return username == USERNAME and password == PASSWORD
-
-def authenticate():
-    """Запрос аутентификации"""
-    return Response(
-        'Authentication required', 401,
-        {'WWW-Authenticate': 'Basic realm="Trading Bot Login Required"'}
-    )
+# ===== MIDDLEWARE =====
 
 @app.before_request
-def require_auth():
+def auth_middleware():
     """Middleware для проверки аутентификации"""
-    # Пропускаем статические файлы
-    if request.path.startswith('/static/'):
-        return
-    
-    auth = request.authorization
-    if not auth or not check_auth(auth.username, auth.password):
-        return authenticate()
+    return require_auth()
 
-# === ОСНОВНЫЕ МАРШРУТЫ ===
+# ===== ОСНОВНЫЕ МАРШРУТЫ =====
 
 @app.route('/')
 def dashboard():
@@ -63,7 +40,7 @@ def signals():
     data = ROUTE_HANDLERS['signals_get']()
     return render_template('signals.html', **data)
 
-# === API МАРШРУТЫ ===
+# ===== API МАРШРУТЫ =====
 
 @app.route('/signals_data')
 def signals_data():
@@ -85,7 +62,7 @@ def get_columns_config():
     """API: Получение конфигурации колонок"""
     return ROUTE_HANDLERS['get_columns_config']()
 
-# === ФИЛЬТРЫ JINJA2 ===
+# ===== ФИЛЬТРЫ JINJA2 =====
 
 @app.template_filter('tojsonfilter')
 def tojson_filter(obj):
@@ -93,7 +70,7 @@ def tojson_filter(obj):
     import json
     return json.dumps(obj, ensure_ascii=False)
 
-# === ОБРАБОТЧИКИ ОШИБОК ===
+# ===== ОБРАБОТЧИКИ ОШИБОК =====
 
 @app.errorhandler(404)
 def not_found(error):
@@ -110,9 +87,11 @@ def internal_error(error):
                          error_message="Внутренняя ошибка сервера"), 500
 
 if __name__ == '__main__':
+    from ui.auth import auth_manager
+    
     print("🚀 Запуск Trading Bot UI...")
-    print(f"👤 Пользователь: {USERNAME}")
-    print(f"🔐 Пароль: {'*' * len(PASSWORD)}")
+    print(f"👤 Пользователь: {auth_manager.username}")
+    print(f"🔐 Пароль: {'*' * len(auth_manager.password)}")
     print(f"🌐 Адрес: http://localhost:8888")
     
     app.run(host='0.0.0.0', port=8888, debug=True)

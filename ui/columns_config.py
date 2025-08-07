@@ -1,12 +1,12 @@
 """
 Модуль для управления конфигурацией колонок таблицы сигналов
+Перенесено из columns_config.py
 """
 import json
 import os
-import sqlite3
+from core.database import db_manager
 
 COLUMNS_CONFIG_FILE = "columns_config.json"
-DB_FILE = "signals.db"
 
 # Настройки колонок по умолчанию
 DEFAULT_COLUMNS = {
@@ -18,7 +18,8 @@ DEFAULT_COLUMNS = {
     'result': {'name': 'Result', 'visible': True, 'order': 5, 'width': '100px'},
     'strategy': {'name': 'Strategy', 'visible': True, 'order': 6, 'width': '120px'},
     'message': {'name': 'Message', 'visible': False, 'order': 7, 'width': '200px'},
-    'code': {'name': 'Code', 'visible': False, 'order': 8, 'width': '80px'}
+    'code': {'name': 'Code', 'visible': False, 'order': 8, 'width': '80px'},
+    'extra_data': {'name': 'Extra Data', 'visible': False, 'order': 9, 'width': '100px'}
 }
 
 def load_columns_config():
@@ -27,12 +28,10 @@ def load_columns_config():
         if os.path.exists(COLUMNS_CONFIG_FILE):
             with open(COLUMNS_CONFIG_FILE, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                # Обновляем конфигурацию новыми колонками из БД
                 return sync_with_database(config)
     except Exception as e:
         print(f"❌ Ошибка загрузки конфигурации колонок: {e}")
     
-    # Возвращаем конфигурацию по умолчанию, синхронизированную с БД
     return sync_with_database(DEFAULT_COLUMNS.copy())
 
 def save_columns_config(config):
@@ -46,28 +45,9 @@ def save_columns_config(config):
         print(f"❌ Ошибка сохранения конфигурации колонок: {e}")
         return False
 
-def get_db_columns():
-    """Получает реальные колонки из базы данных"""
-    try:
-        if not os.path.exists(DB_FILE):
-            print(f"⚠️ База данных {DB_FILE} не найдена")
-            return list(DEFAULT_COLUMNS.keys())
-            
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("PRAGMA table_info(signals)")
-        db_columns = [col[1] for col in cursor.fetchall()]
-        conn.close()
-        
-        print(f"📋 Найдено колонок в БД: {len(db_columns)} - {db_columns}")
-        return db_columns
-    except Exception as e:
-        print(f"❌ Ошибка получения колонок БД: {e}")
-        return list(DEFAULT_COLUMNS.keys())
-
 def sync_with_database(config):
     """Синхронизирует конфигурацию с реальными колонками БД"""
-    db_columns = get_db_columns()
+    db_columns = db_manager.get_columns()
     updated = False
     
     # Добавляем новые колонки из БД
@@ -101,7 +81,6 @@ def get_visible_columns(config):
         (key, col_config) for key, col_config in config.items() 
         if col_config.get('visible', True)
     ]
-    # Сортируем по порядку
     visible_columns.sort(key=lambda x: x[1].get('order', 999))
     return visible_columns
 
@@ -112,12 +91,15 @@ def reset_to_default():
     return config
 
 if __name__ == "__main__":
-    # Тестирование модуля
-    print("🧪 Тестирование модуля columns_config...")
+    print("🧪 Тестирование UI модулей...")
+    
+    # Тест signals_handler
+    data = get_signals_data(limit=5)
+    print(f"📊 Получено записей: {data['total_found']}")
+    
+    # Тест columns_config  
     config = load_columns_config()
-    print(f"📊 Загружена конфигурация: {len(config)} колонок")
+    print(f"📋 Конфигурация колонок: {len(config)} колонок")
     
     visible = get_visible_columns(config)
     print(f"👁️ Видимых колонок: {len(visible)}")
-    for key, col_config in visible:
-        print(f"  - {col_config['name']} (order: {col_config['order']})")

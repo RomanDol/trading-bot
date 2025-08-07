@@ -1,63 +1,63 @@
 {
-  "id": {
-    "name": "#",
-    "visible": true,
-    "order": 0,
-    "width": "60px"
-  },
-  "timestamp": {
-    "name": "Time",
-    "visible": true,
-    "order": 1,
-    "width": "140px"
-  },
   "action": {
     "name": "Action",
-    "visible": true,
     "order": 2,
+    "visible": true,
     "width": "100px"
-  },
-  "symbol": {
-    "name": "Symbol",
-    "visible": true,
-    "order": 3,
-    "width": "100px"
-  },
-  "quantity": {
-    "name": "Qty",
-    "visible": true,
-    "order": 4,
-    "width": "80px"
-  },
-  "result": {
-    "name": "Result",
-    "visible": true,
-    "order": 5,
-    "width": "100px"
-  },
-  "strategy": {
-    "name": "Strategy",
-    "visible": true,
-    "order": 6,
-    "width": "120px"
-  },
-  "message": {
-    "name": "Message",
-    "visible": false,
-    "order": 7,
-    "width": "200px"
   },
   "code": {
     "name": "Code",
-    "visible": false,
     "order": 8,
+    "visible": false,
     "width": "80px"
   },
   "extra_data": {
     "name": "Extra Data",
-    "visible": false,
     "order": 9,
+    "visible": true,
     "width": "100px"
+  },
+  "id": {
+    "name": "#",
+    "order": 0,
+    "visible": true,
+    "width": "60px"
+  },
+  "message": {
+    "name": "Message",
+    "order": 7,
+    "visible": false,
+    "width": "200px"
+  },
+  "quantity": {
+    "name": "Qty",
+    "order": 4,
+    "visible": false,
+    "width": "80px"
+  },
+  "result": {
+    "name": "Result",
+    "order": 5,
+    "visible": true,
+    "width": "100px"
+  },
+  "strategy": {
+    "name": "Strategy",
+    "order": 6,
+    "visible": true,
+    "width": "120px"
+  },
+  "symbol": {
+    "name": "Symbol",
+    "order": 3,
+    "visible": true,
+    "width": "100px"
+  },
+  "timestamp": {
+    "name": "Time",
+    "order": 1,
+    "visible": true,
+    "width": "140px"
   },
   "json_custom_param": {
     "name": "custom_param",
@@ -68,5 +68,10 @@
     "name": "custom_param-2",
     "visible": false,
     "order": 11
+  },
+  "json_custom_param-3": {
+    "name": "custom_param-3",
+    "visible": false,
+    "order": 12
   }
 }
