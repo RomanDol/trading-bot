@@ -43,7 +43,7 @@
   },
   "message": {
     "name": "Message",
-    "visible": true,
+    "visible": false,
     "order": 7,
     "width": "200px"
   },
@@ -52,5 +52,21 @@
     "visible": false,
     "order": 8,
     "width": "80px"
+  },
+  "extra_data": {
+    "name": "Extra Data",
+    "visible": false,
+    "order": 9,
+    "width": "100px"
+  },
+  "json_custom_param": {
+    "name": "custom_param",
+    "visible": false,
+    "order": 10
+  },
+  "json_custom_param-2": {
+    "name": "custom_param-2",
+    "visible": false,
+    "order": 11
   }
 }

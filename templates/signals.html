@@ -285,6 +285,74 @@
         
         let autoRefresh = true;
         let refreshInterval;
+
+
+
+
+
+
+        // В templates/signals.html добавьте эти функции перед существующими:
+
+        let jsonColumns = new Set();
+
+        function analyzeAndCreateJsonColumns(data) {
+            const extraDataIndex = data.column_map['extra_data'];
+            if (extraDataIndex === undefined) return;
+            
+            // Находим все уникальные JSON поля
+            const newJsonFields = new Set();
+            data.rows.forEach(row => {
+                const extraData = row[extraDataIndex];
+                if (extraData) {
+                    try {
+                        const jsonData = JSON.parse(extraData);
+                        Object.keys(jsonData).forEach(key => newJsonFields.add(key));
+                    } catch (e) {}
+                }
+            });
+            
+            // Добавляем новые поля в конфигурацию колонок
+            let configUpdated = false;
+            newJsonFields.forEach(field => {
+                const jsonKey = `json_${field}`;
+                if (!columnsConfig[jsonKey]) {
+                    columnsConfig[jsonKey] = {
+                        name: field,
+                        visible: false, // По умолчанию скрыты
+                        order: Object.keys(columnsConfig).length
+                    };
+                    jsonColumns.add(jsonKey);
+                    configUpdated = true;
+                }
+            });
+            
+            if (configUpdated) {
+                updateColumnsPanel();
+                saveColumnsConfig();
+            }
+        }
+
+        function getJsonValue(row, jsonField, extraDataIndex) {
+            const extraData = row[extraDataIndex];
+            if (!extraData) return null;
+            
+            try {
+                const jsonData = JSON.parse(extraData);
+                const fieldName = jsonField.replace('json_', '');
+                return jsonData[fieldName];
+            } catch (e) {
+                return null;
+            }
+        }
+
+
+
+
+
+
+
+
+
         
         function toggleColumnsPanel() {
             const panel = document.getElementById('columns-panel');
@@ -456,6 +524,9 @@
                     return;
                 }
                 
+                // Анализируем и создаем JSON колонки
+                analyzeAndCreateJsonColumns(data);
+                
                 const tableBody = document.getElementById("signal-body");
                 tableBody.innerHTML = "";
                 
@@ -467,42 +538,86 @@
                         .sort((a, b) => a[1].order - b[1].order);
                         
                     sortedColumns.forEach(([columnKey, config]) => {
-                        const columnIndex = data.column_map[columnKey];
-                        if (columnIndex !== undefined) {
-                            const td = document.createElement("td");
-                            td.setAttribute('data-column', columnKey);
-                            
-                            let cellValue = row[columnIndex];
-                            
-                            // Специальная обработка для определенных колонок
-                            if (columnKey === 'timestamp') {
-                                try {
-                                    // Время из БД в формате: 2025-08-07 01:03:16 (UTC)
-                                    // Создаем дату явно указывая что это UTC
-                                    const utcDate = new Date(cellValue.replace(' ', 'T') + 'Z');
-                                    
-                                    // Форматируем в локальном часовом поясе пользователя
-                                    const day = String(utcDate.getDate()).padStart(2, '0');
-                                    const month = String(utcDate.getMonth() + 1).padStart(2, '0');
-                                    const year = utcDate.getFullYear();
-                                    const hours = String(utcDate.getHours()).padStart(2, '0');
-                                    const minutes = String(utcDate.getMinutes()).padStart(2, '0');
-                                    const seconds = String(utcDate.getSeconds()).padStart(2, '0');
-                                    
-                                    td.textContent = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
-                                } catch (e) {
-                                    // Если не удалось преобразовать, показываем как есть
-                                    td.textContent = cellValue || '';
-                                }
-                            } else if (columnKey === 'result') {
-                                td.textContent = cellValue === "success" ? "✅ success" : "❌ error";
-                                td.className = cellValue === "success" ? "status-success" : "status-error";
-                            } else {
+                        const td = document.createElement("td");
+                        td.setAttribute('data-column', columnKey);
+                        
+                        let cellValue;
+                        
+                        if (columnKey.startsWith('json_')) {
+                            // Обработка JSON колонок
+                            const extraDataIndex = data.column_map['extra_data'];
+                            cellValue = getJsonValue(row, columnKey, extraDataIndex);
+                        } else {
+                            // Обычные колонки
+                            const columnIndex = data.column_map[columnKey];
+                            cellValue = columnIndex !== undefined ? row[columnIndex] : '';
+                        }
+                        
+                        // Специальная обработка для определенных колонок
+                        if (columnKey === 'timestamp') {
+                            try {
+                                const localDate = new Date(cellValue.replace(' ', 'T'));
+                                const day = String(localDate.getDate()).padStart(2, '0');
+                                const month = String(localDate.getMonth() + 1).padStart(2, '0');
+                                const year = localDate.getFullYear();
+                                const hours = String(localDate.getHours()).padStart(2, '0');
+                                const minutes = String(localDate.getMinutes()).padStart(2, '0');
+                                const seconds = String(localDate.getSeconds()).padStart(2, '0');
+                                td.textContent = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+                            } catch (e) {
                                 td.textContent = cellValue || '';
                             }
-                            
-                            tr.appendChild(td);
+                        } else if (columnKey === 'result') {
+                            td.textContent = cellValue === "success" ? "✅ success" : "❌ error";
+                            td.className = cellValue === "success" ? "status-success" : "status-error";
+                        } else if (columnKey === 'extra_data') {
+                            // Компактное отображение JSON
+                            if (cellValue) {
+                                try {
+                                    const extraData = JSON.parse(cellValue);
+                                    const entries = Object.entries(extraData);
+                                    if (entries.length > 0) {
+                                        td.innerHTML = entries
+                                            .map(([key, value]) => `<small><strong>${key}:</strong> ${value}</small>`)
+                                            .join('<br>');
+                                        td.style.fontSize = '11px';
+                                        td.style.lineHeight = '1.3';
+                                        td.title = JSON.stringify(extraData, null, 2);
+                                    } else {
+                                        td.textContent = '';
+                                    }
+                                } catch (e) {
+                                    td.textContent = cellValue.substring(0, 50) + (cellValue.length > 50 ? '...' : '');
+                                }
+                            } else {
+                                td.textContent = '';
+                            }
+                        } else if (columnKey.startsWith('json_')) {
+                            // Отображение отдельных JSON полей
+                            if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
+                                if (typeof cellValue === 'boolean') {
+                                    td.textContent = cellValue ? '✅' : '❌';
+                                } else if (Array.isArray(cellValue)) {
+                                    td.textContent = cellValue.join(', ');
+                                    td.title = JSON.stringify(cellValue);
+                                } else if (typeof cellValue === 'object') {
+                                    td.textContent = JSON.stringify(cellValue);
+                                    td.title = JSON.stringify(cellValue, null, 2);
+                                } else {
+                                    td.textContent = String(cellValue);
+                                }
+                                td.style.fontFamily = 'monospace';
+                                td.style.fontSize = '12px';
+                            } else {
+                                td.textContent = '-';
+                                td.style.color = '#666';
+                                td.style.fontStyle = 'italic';
+                            }
+                        } else {
+                            td.textContent = cellValue || '';
                         }
+                        
+                        tr.appendChild(td);
                     });
                     
                     tableBody.appendChild(tr);

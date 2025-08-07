@@ -216,3 +216,88 @@ if __name__ == "__main__":
     print(f"📈 Общее количество сигналов: {stats['total_signals']}")
     print(f"✅ Успешных: {stats['success_count']}")
     print(f"❌ Ошибок: {stats['error_count']}")
+
+
+
+
+def get_json_fields_from_db():
+    """Анализирует все JSON данные и возвращает уникальные поля"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Получаем все непустые extra_data
+        cursor.execute("SELECT extra_data FROM signals WHERE extra_data IS NOT NULL AND extra_data != '{}'")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        # Собираем все уникальные ключи из JSON
+        all_keys = set()
+        for row in rows:
+            try:
+                json_data = json.loads(row[0])
+                all_keys.update(json_data.keys())
+            except:
+                continue
+                
+        return sorted(list(all_keys))
+        
+    except Exception as e:
+        print(f"❌ Ошибка анализа JSON полей: {e}")
+        return []
+
+def get_signals_data_with_json_columns(filters=None, limit=200):
+    """Получает данные с развернутыми JSON колонками"""
+    # Получаем базовые данные
+    base_data = get_signals_data(filters, limit)
+    
+    # Получаем все JSON поля
+    json_fields = get_json_fields_from_db()
+    
+    if not json_fields:
+        return base_data
+    
+    # Расширяем данные JSON полями
+    enhanced_rows = []
+    for row in base_data['rows']:
+        enhanced_row = list(row)
+        
+        # Находим индекс extra_data
+        if 'extra_data' in base_data['column_map']:
+            extra_data_index = base_data['column_map']['extra_data']
+            extra_data = row[extra_data_index]
+            
+            # Парсим JSON и добавляем поля
+            json_values = {}
+            if extra_data:
+                try:
+                    json_values = json.loads(extra_data)
+                except:
+                    pass
+            
+            # Добавляем значения для каждого JSON поля
+            for field in json_fields:
+                enhanced_row.append(json_values.get(field, ''))
+        else:
+            # Если нет extra_data, добавляем пустые значения
+            for field in json_fields:
+                enhanced_row.append('')
+                
+        enhanced_rows.append(enhanced_row)
+    
+    # Обновляем колонки и маппинг
+    enhanced_columns = base_data['columns'] + [f"json_{field}" for field in json_fields]
+    enhanced_column_map = base_data['column_map'].copy()
+    
+    # Добавляем маппинг для JSON полей
+    base_column_count = len(base_data['columns'])
+    for i, field in enumerate(json_fields):
+        enhanced_column_map[f"json_{field}"] = base_column_count + i
+    
+    return {
+        'rows': enhanced_rows,
+        'columns': enhanced_columns,
+        'column_map': enhanced_column_map,
+        'total_found': len(enhanced_rows),
+        'json_fields': json_fields
+    }

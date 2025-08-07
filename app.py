@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import re
 from precision import adjust_quantity, load_step_sizes
 import logging
+import json
 
 # ✅ Настройка логирования
 logging.basicConfig(
@@ -53,24 +54,34 @@ load_step_sizes()
 
 
 
-
-
-def log_signal(action, symbol, quantity, result, message, strategy=''):
-    """Записывает сигнал в БД с временем в UTC"""
+def log_signal(action, symbol, quantity, result, message, strategy='', extra_data=None):
+    """Записывает сигнал в БД с временем в UTC и дополнительными данными"""
     from datetime import datetime
     
     # Сохраняем время в UTC без timezone конвертации
     utc_timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     
+    # Преобразуем extra_data в JSON строку
+    extra_json = None
+    if extra_data:
+        try:
+            extra_json = json.dumps(extra_data, ensure_ascii=False)
+        except Exception as e:
+            print(f"⚠️ Ошибка сериализации extra_data: {e}")
+            extra_json = str(extra_data)  # Fallback
+    
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''
-            INSERT INTO signals (timestamp, action, symbol, quantity, result, message, code, strategy)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO signals (timestamp, action, symbol, quantity, result, message, code, strategy, extra_data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            utc_timestamp, action, symbol, quantity, result, message, '', strategy
+            utc_timestamp, action, symbol, quantity, result, message, '', strategy, extra_json
         ))
     
-    print(f"💾 Сохранено в БД: {utc_timestamp} UTC - {action} {symbol} {quantity}")
+    extra_info = f" + {len(extra_data)} extra fields" if extra_data else ""
+    print(f"💾 Сохранено в БД: {utc_timestamp} UTC - {action} {symbol} {quantity}{extra_info}")
+
+
 
 
 
@@ -137,11 +148,22 @@ def webhook():
     if 'action' not in data or 'symbol' not in data or 'quantity' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
 
+    # Извлекаем основные поля
     action = data['action']
     symbol = data['symbol']
     quantity_raw = float(data['quantity'])
     quantity = adjust_quantity(symbol, quantity_raw)
+    strategy = data.get('strategy', '')
 
+    # Извлекаем ВСЕ дополнительные поля (любые кроме основных и служебных)
+    CORE_FIELDS = {'auth_key', 'action', 'symbol', 'quantity', 'strategy'}
+    extra_data = {k: v for k, v in data.items() if k not in CORE_FIELDS}
+    
+    # Если есть дополнительные поля, логируем их
+    if extra_data:
+        logger.info(f"📋 Extra fields: {extra_data}")
+
+    # Выполняем торговые операции
     if action == 'ENTER_LONG':
         success, msg = open_position(symbol, 'LONG', quantity)
     elif action == 'EXIT_LONG':
@@ -153,15 +175,12 @@ def webhook():
     else:
         success, msg = False, '❓ Unknown action'
 
-    strategy = data.get('strategy', '')
     logger.info(f"📌 STRATEGY: {strategy}")
 
-    log_signal(action, symbol, quantity, 'success' if success else 'error', msg, strategy)
+    # Сохраняем в БД с дополнительными полями (если есть)
+    log_signal(action, symbol, quantity, 'success' if success else 'error', msg, strategy, extra_data if extra_data else None)
 
     return jsonify({'status': 'ok' if success else 'error', 'message': msg})
-
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
