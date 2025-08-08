@@ -1,4 +1,91 @@
-// ===== JAVASCRIPT ДЛЯ SIGNALS PAGE =====
+function setPaginationLoading(isLoading) {
+        if (!paginationState.isVisible) return; // Не обновляем если пагинация скрыта
+        
+        const paginationControls = [
+            DOM.get('pagination-controls-top'),
+            DOM.get('pagination-controls-bottom')
+        ].filter(control => control && !control.classList.contains('hidden'));
+        
+        paginationControls.forEach(control => {
+            if (isLoading) {
+                control.style.opacity = '0.6';
+                control.style.pointerEvents = 'none';
+            } else {
+                control.style.opacity = '1';
+                control.style.pointerEvents = 'auto';
+            }
+        });
+    }
+    
+    function togglePaginationVisibility() {
+        paginationState.isVisible = !paginationState.isVisible;
+        const btn = DOM.get('toggle-pagination-btn');
+        const paginationControls = [
+            DOM.get('pagination-controls-top'),
+            DOM.get('pagination-controls-bottom')
+        ];
+        
+        console.log('🔄 Переключение пагинации:', paginationState.isVisible ? 'показать' : 'скрыть');
+        console.log('📋 Найденные элементы:', paginationControls.map(el => el ? el.id : 'null'));
+        
+        if (paginationState.isVisible) {
+            btn.textContent = '📄 Hide Pagination';
+            btn.classList.remove('active');
+            paginationControls.forEach(control => {
+                if (control) {
+                    control.classList.remove('hidden');
+                    control.style.display = 'flex'; // Принудительно показываем
+                    console.log(`✅ Показан элемент: ${control.id}`);
+                }
+            });
+            
+            // Сохраняем состояние
+            localStorage.setItem('pagination_visible', 'true');
+            console.log('📄 Пагинация показана');
+        } else {
+            btn.textContent = '📄 Show Pagination';
+            btn.classList.add('active');
+            paginationControls.forEach(control => {
+                if (control) {
+                    control.classList.add('hidden');
+                    control.style.display = 'none'; // Принудительно скрываем
+                    console.log(`❌ Скрыт элемент: ${control.id}`);
+                }
+            });
+            
+            // Сохраняем состояние
+            localStorage.setItem('pagination_visible', 'false');
+            console.log('📄 Пагинация скрыта');
+        }
+    }
+    
+    function loadPaginationVisibility() {
+        const savedVisibility = localStorage.getItem('pagination_visible');
+        console.log('💾 Загруженное состояние пагинации:', savedVisibility);
+        
+        if (savedVisibility === 'false') {
+            // Принудительно скрываем пагинацию
+            paginationState.isVisible = false;
+            const btn = DOM.get('toggle-pagination-btn');
+            const paginationControls = [
+                DOM.get('pagination-controls-top'),
+                DOM.get('pagination-controls-bottom')
+            ];
+            
+            btn.textContent = '📄 Show Pagination';
+            btn.classList.add('active');
+            paginationControls.forEach(control => {
+                if (control) {
+                    control.classList.add('hidden');
+                    control.style.display = 'none';
+                    console.log(`🔒 Скрыт при загрузке: ${control.id}`);
+                }
+            });
+            
+            console.log('📄 Пагинация скрыта при загрузке');
+        }
+    }
+            // ===== JAVASCRIPT ДЛЯ SIGNALS PAGE С ПАГИНАЦИЕЙ =====
 
 document.addEventListener('DOMContentLoaded', function() {
     const { DOM, API, DateUtils, Notifications } = window.TradingBotUI;
@@ -9,10 +96,32 @@ document.addEventListener('DOMContentLoaded', function() {
     let refreshInterval;
     let jsonColumns = new Set();
     
+    // Состояние пагинации
+    let paginationState = {
+        currentPage: 1,
+        totalPages: 1,
+        limit: 50,
+        totalCount: 0,
+        hasNext: false,
+        hasPrev: false,
+        isVisible: true // Добавляем состояние видимости пагинации
+    };
+    
     // Инициализация
     function init() {
         loadColumnsConfig();
         setupEventHandlers();
+        setupPaginationHandlers();
+        
+        // Загружаем состояние пагинации
+        const savedVisibility = localStorage.getItem('pagination_visible');
+        if (savedVisibility === 'false') {
+            document.getElementById('pagination-controls-top').style.display = 'none';
+            document.getElementById('pagination-controls-bottom').style.display = 'none';
+            document.getElementById('toggle-pagination-btn').textContent = '📄 Show Pagination';
+            document.getElementById('toggle-pagination-btn').classList.add('active');
+        }
+        
         updateColumnsPanel();
         createTableHeaders();
         fetchSignals();
@@ -22,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         console.log('📊 Signals page инициализирован');
-        console.log('🔒 Файл columns_config.json НЕ будет перезаписан при загрузке/фильтрации');
     }
     
     // Запускаем инициализацию
@@ -35,13 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const appData = DOM.get('app-data');
             const configData = appData.getAttribute('data-columns-config');
             columnsConfig = JSON.parse(configData);
-            console.log('📋 Загружена конфигурация из HTML (БЕЗ перезаписи файла)');
+            console.log('📋 Загружена конфигурация из HTML');
         } catch (e) {
             console.error('Ошибка загрузки конфигурации колонок:', e);
-            // Резервная конфигурация
             columnsConfig = getDefaultColumnsConfig();
         }
-        console.log('Конфигурация колонок:', Object.keys(columnsConfig).length, 'колонок');
     }
     
     function getDefaultColumnsConfig() {
@@ -105,8 +211,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await API.post('/save_columns_config', columnsConfig);
             if (result.status === 'success') {
                 console.log('✅ Конфигурация колонок сохранена');
-            } else {
-                console.error('❌ Ошибка сохранения:', result.message);
             }
         } catch (e) {
             console.error('❌ Ошибка сохранения конфигурации:', e);
@@ -129,13 +233,140 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // ===== ПАГИНАЦИЯ =====
+    
+    function setupPaginationHandlers() {
+        // Настройка количества строк через поле ввода
+        const rowsInput = DOM.get('rows-per-page-input');
+        const applyBtn = DOM.get('apply-rows-btn');
+        
+        // Загружаем сохраненное значение из localStorage
+        const savedLimit = localStorage.getItem('signals_rows_per_page');
+        if (savedLimit) {
+            paginationState.limit = parseInt(savedLimit);
+            rowsInput.value = paginationState.limit;
+        }
+        
+        applyBtn.addEventListener('click', function() {
+            const newLimit = parseInt(rowsInput.value);
+            if (newLimit >= 1 && newLimit <= 10000) {
+                paginationState.limit = newLimit;
+                paginationState.currentPage = 1; // Сбрасываем на первую страницу
+                
+                // Сохраняем в localStorage
+                localStorage.setItem('signals_rows_per_page', newLimit);
+                
+                fetchSignals();
+                Notifications.success(`Установлено ${newLimit} строк на странице`);
+            } else {
+                Notifications.error('Количество строк должно быть от 1 до 10000');
+                rowsInput.value = paginationState.limit;
+            }
+        });
+        
+        // Применение по Enter
+        rowsInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyBtn.click();
+            }
+        });
+        
+        // Кнопки навигации (верхние)
+        DOM.get('first-page-btn').addEventListener('click', () => goToPage(1));
+        DOM.get('prev-page-btn').addEventListener('click', () => goToPage(paginationState.currentPage - 1));
+        DOM.get('next-page-btn').addEventListener('click', () => goToPage(paginationState.currentPage + 1));
+        DOM.get('last-page-btn').addEventListener('click', () => goToPage(paginationState.totalPages));
+        
+        // Кнопки навигации (нижние)
+        DOM.get('first-page-btn-bottom').addEventListener('click', () => goToPage(1));
+        DOM.get('prev-page-btn-bottom').addEventListener('click', () => goToPage(paginationState.currentPage - 1));
+        DOM.get('next-page-btn-bottom').addEventListener('click', () => goToPage(paginationState.currentPage + 1));
+        DOM.get('last-page-btn-bottom').addEventListener('click', () => goToPage(paginationState.totalPages));
+        
+        // Ввод номера страницы
+        const pageInputs = [DOM.get('current-page-input'), DOM.get('current-page-input-bottom')];
+        pageInputs.forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const page = parseInt(this.value);
+                    if (page >= 1 && page <= paginationState.totalPages) {
+                        goToPage(page);
+                    } else {
+                        this.value = paginationState.currentPage;
+                        Notifications.error(`Страница должна быть от 1 до ${paginationState.totalPages}`);
+                    }
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                const page = parseInt(this.value);
+                if (!page || page < 1 || page > paginationState.totalPages) {
+                    this.value = paginationState.currentPage;
+                }
+            });
+        });
+    }
+    
+    function goToPage(page) {
+        if (page < 1 || page > paginationState.totalPages) return;
+        
+        paginationState.currentPage = page;
+        fetchSignals();
+    }
+    
+    function updatePaginationUI() {
+        // БЛОКИРУЕМ обновление UI если это автообновление
+        if (window.isAutoRefreshing) {
+            return; // Не обновляем UI при автообновлении
+        }
+        
+        // Не обновляем UI если пагинация скрыта
+        if (!paginationState.isVisible) return;
+        
+        // Обновляем поля ввода страницы
+        const pageInputs = [DOM.get('current-page-input'), DOM.get('current-page-input-bottom')];
+        pageInputs.forEach(input => {
+            if (input) {
+                input.value = paginationState.currentPage;
+                input.max = paginationState.totalPages;
+            }
+        });
+        
+        // Обновляем общее количество страниц
+        const totalSpans = [DOM.get('total-pages-span'), DOM.get('total-pages-span-bottom')];
+        totalSpans.forEach(span => {
+            if (span) {
+                span.textContent = `of ${paginationState.totalPages}`;
+            }
+        });
+        
+        // Управляем состоянием кнопок
+        const prevButtons = [DOM.get('first-page-btn'), DOM.get('prev-page-btn'), 
+                           DOM.get('first-page-btn-bottom'), DOM.get('prev-page-btn-bottom')];
+        const nextButtons = [DOM.get('next-page-btn'), DOM.get('last-page-btn'),
+                           DOM.get('next-page-btn-bottom'), DOM.get('last-page-btn-bottom')];
+        
+        prevButtons.forEach(btn => {
+            if (btn) btn.disabled = !paginationState.hasPrev;
+        });
+        
+        nextButtons.forEach(btn => {
+            if (btn) btn.disabled = !paginationState.hasNext;
+        });
+        
+        // Обновляем поле ввода количества строк в настройках
+        const rowsInput = DOM.get('rows-per-page-input');
+        if (rowsInput) {
+            rowsInput.value = paginationState.limit;
+        }
+    }
+    
     // ===== УПРАВЛЕНИЕ ТАБЛИЦЕЙ =====
     
     function createTableHeaders() {
         const headerRow = DOM.get('table-header');
         headerRow.innerHTML = '';
         
-        // Сортируем колонки по порядку
         const sortedColumns = Object.entries(columnsConfig)
             .sort((a, b) => a[1].order - b[1].order);
         
@@ -155,7 +386,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyColumnVisibility() {
         createTableHeaders();
         
-        // Обновляем ячейки данных
         Object.entries(columnsConfig).forEach(([key, config]) => {
             const elements = document.querySelectorAll('[data-column="' + key + '"]');
             elements.forEach(el => {
@@ -185,14 +415,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Добавляем ТОЛЬКО новые поля, НЕ перезаписывая существующие
         let configUpdated = false;
         newJsonFields.forEach(field => {
             const jsonKey = `json_${field}`;
-            if (!columnsConfig[jsonKey]) {  // Только если колонки еще НЕТ
+            if (!columnsConfig[jsonKey]) {
                 columnsConfig[jsonKey] = {
                     name: field,
-                    visible: false,  // По умолчанию скрыты
+                    visible: false,
                     order: Object.keys(columnsConfig).length
                 };
                 jsonColumns.add(jsonKey);
@@ -201,7 +430,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // СОХРАНЯЕМ конфигурацию только если есть НОВЫЕ колонки
         if (configUpdated) {
             updateColumnsPanel();
             saveColumnsConfig();
@@ -225,13 +453,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function fetchSignals() {
         try {
+            // Показываем состояние загрузки
+            setPaginationLoading(true);
+            
             const params = new URLSearchParams(window.location.search);
+            
+            // Добавляем параметры пагинации
+            params.set('limit', paginationState.limit);
+            params.set('page', paginationState.currentPage);
+            
             const data = await API.get("/signals_data?" + params.toString());
             
             if (data.error) {
                 console.error('API Error:', data.error);
+                Notifications.error('Ошибка загрузки данных');
                 return;
             }
+            
+            // Обновляем состояние пагинации
+            paginationState = {
+                currentPage: data.current_page || 1,
+                totalPages: data.total_pages || 1,
+                limit: data.limit || 50,
+                totalCount: data.total_count || 0,
+                hasNext: data.has_next || false,
+                hasPrev: data.has_prev || false
+            };
             
             // Анализируем и создаем JSON колонки
             analyzeAndCreateJsonColumns(data);
@@ -242,7 +489,6 @@ document.addEventListener('DOMContentLoaded', function() {
             data.rows.forEach((row) => {
                 const tr = DOM.create('tr');
                 
-                // Создаем ячейки в порядке конфигурации
                 const sortedColumns = Object.entries(columnsConfig)
                     .sort((a, b) => a[1].order - b[1].order);
                     
@@ -260,20 +506,21 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             applyColumnVisibility();
+            updatePaginationUI();
                 
         } catch (error) {
             console.error("Failed to fetch signals:", error);
             Notifications.error("Ошибка загрузки данных сигналов");
+        } finally {
+            setPaginationLoading(false);
         }
     }
     
-    function getCellValue(row, columnKey, data) {
+    function setCellValue(row, columnKey, data) {
         if (columnKey.startsWith('json_')) {
-            // Обработка JSON колонок
             const extraDataIndex = data.column_map['extra_data'];
             return getJsonValue(row, columnKey, extraDataIndex);
         } else {
-            // Обычные колонки
             const columnIndex = data.column_map[columnKey];
             return columnIndex !== undefined ? row[columnIndex] : '';
         }
@@ -333,6 +580,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function setPaginationLoading(isLoading) {
+        const paginationControls = document.querySelectorAll('.pagination-controls');
+        paginationControls.forEach(control => {
+            if (isLoading) {
+                control.classList.add('pagination-loading');
+            } else {
+                control.classList.remove('pagination-loading');
+            }
+        });
+    }
+    
     // ===== АВТООБНОВЛЕНИЕ =====
     
     function toggleAutoRefresh() {
@@ -345,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
             startAutoRefresh();
             console.log('🔄 Автообновление запущено');
         } else {
-            btn.textContent = '⏸️ Pause';
+            btn.textContent = '▶️ Resume';
             btn.classList.add('active');
             stopAutoRefresh();
             console.log('⏸️ Автообновление на паузе');
@@ -354,7 +612,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(fetchSignals, 3000);
+        refreshInterval = setInterval(() => {
+            // Помечаем что это автообновление
+            window.isAutoRefreshing = true;
+            
+            // При автообновлении остаемся на текущей странице
+            fetchSignals().finally(() => {
+                // Снимаем флаг после завершения
+                window.isAutoRefreshing = false;
+            });
+        }, 5000);
     }
     
     function stopAutoRefresh() {
@@ -367,9 +634,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== ОБРАБОТЧИКИ СОБЫТИЙ =====
     
     function setupEventHandlers() {
-        // Кнопка конфигурации колонок
-        const columnsBtn = DOM.get('columns-btn');
-        columnsBtn.addEventListener('click', toggleColumnsPanel);
+        // Кнопка настроек
+        document.getElementById('settings-btn').addEventListener('click', function() {
+            const panel = document.getElementById('settings-panel');
+            const btn = this;
+            
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                btn.classList.add('active');
+            } else {
+                panel.style.display = 'none';
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Кнопка скрытия пагинации
+        document.getElementById('toggle-pagination-btn').addEventListener('click', function() {
+            const top = document.getElementById('pagination-controls-top');
+            const bottom = document.getElementById('pagination-controls-bottom');
+            const btn = this;
+            
+            if (top.style.display === 'none') {
+                // Показываем
+                top.style.display = 'flex';
+                bottom.style.display = 'flex';
+                btn.textContent = '📄 Hide Pagination';
+                btn.classList.remove('active');
+                localStorage.setItem('pagination_visible', 'true');
+            } else {
+                // Скрываем
+                top.style.display = 'none';
+                bottom.style.display = 'none';
+                btn.textContent = '📄 Show Pagination';
+                btn.classList.add('active');
+                localStorage.setItem('pagination_visible', 'false');
+            }
+        });
         
         // Кнопка автообновления
         const refreshBtn = DOM.get('refresh-btn');
@@ -394,11 +694,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 startAutoRefresh();
             }
         });
+        
+        // Обработка формы фильтров
+        const filterForm = document.querySelector('.filter-form');
+        filterForm.addEventListener('submit', function(e) {
+            // При применении фильтров сбрасываем на первую страницу
+            paginationState.currentPage = 1;
+        });
     }
     
-    function toggleColumnsPanel() {
-        const panel = DOM.get('columns-panel');
-        const btn = DOM.get('columns-btn');
+    function toggleSettingsPanel() {
+        const panel = DOM.get('settings-panel');
+        const btn = DOM.get('settings-btn');
         
         if (panel.style.display === 'none' || panel.style.display === '') {
             panel.style.display = 'block';
@@ -437,14 +744,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // ===== УТИЛИТЫ =====
+    
+    function getCellValue(row, columnKey, data) {
+        return setCellValue(row, columnKey, data);
+    }
+    
     // Делаем функции доступными глобально для отладки
     window.SignalsPage = {
         fetchSignals,
         toggleAutoRefresh,
         resetColumns,
-        toggleColumnsPanel,
+        goToPage,
         columnsConfig: () => columnsConfig,
         autoRefresh: () => autoRefresh,
-        reloadConfig: loadColumnsConfig  // Для отладки
+        paginationState: () => paginationState,
+        reloadConfig: loadColumnsConfig
     };
 });

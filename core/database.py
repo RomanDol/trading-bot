@@ -82,15 +82,68 @@ class DatabaseManager:
         
         return signal_id
     
+    def get_signals_count(self, filters: Optional[Dict[str, str]] = None) -> int:
+        """
+        Получает общее количество сигналов с применением фильтров
+        
+        Args:
+            filters: Словарь с фильтрами
+            
+        Returns:
+            int: Количество записей
+        """
+        if filters is None:
+            filters = {}
+        
+        with sqlite3.connect(self.db_file) as conn:
+            cursor = conn.cursor()
+            
+            query = "SELECT COUNT(*) FROM signals"
+            conditions = []
+            params = []
+            
+            # Применяем те же фильтры что и в get_signals
+            if filters.get('from_date'):
+                conditions.append("DATE(timestamp) >= DATE(?)")
+                params.append(filters['from_date'])
+                
+            if filters.get('to_date'):
+                conditions.append("DATE(timestamp) <= DATE(?)")
+                params.append(filters['to_date'])
+                
+            if filters.get('strategy'):
+                conditions.append("strategy LIKE ?")
+                params.append(f"%{filters['strategy']}%")
+                
+            if filters.get('action'):
+                conditions.append("action = ?")
+                params.append(filters['action'])
+                
+            if filters.get('symbol'):
+                conditions.append("symbol LIKE ?")
+                params.append(f"%{filters['symbol']}%")
+                
+            if filters.get('result'):
+                conditions.append("result = ?")
+                params.append(filters['result'])
+            
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+                
+            cursor.execute(query, params)
+            return cursor.fetchone()[0]
+    
     def get_signals(self, 
                     filters: Optional[Dict[str, str]] = None, 
-                    limit: int = 200) -> List[Tuple]:
+                    limit: int = 200,
+                    offset: int = 0) -> List[Tuple]:
         """
-        Получает сигналы из БД с применением фильтров
+        Получает сигналы из БД с применением фильтров и пагинации
         
         Args:
             filters: Словарь с фильтрами
             limit: Максимальное количество записей
+            offset: Смещение для пагинации
             
         Returns:
             List[Tuple]: Список записей
@@ -135,7 +188,7 @@ class DatabaseManager:
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
                 
-            query += f" ORDER BY id DESC LIMIT {limit}"
+            query += f" ORDER BY id DESC LIMIT {limit} OFFSET {offset}"
             
             cursor.execute(query, params)
             return cursor.fetchall()
@@ -266,3 +319,10 @@ if __name__ == "__main__":
     # Получаем колонки
     columns = db.get_columns()
     print(f"📋 Колонки: {columns}")
+    
+    # Тестируем пагинацию
+    count = db.get_signals_count()
+    print(f"📝 Общее количество записей: {count}")
+    
+    signals_page1 = db.get_signals(limit=10, offset=0)
+    print(f"📄 Первая страница: {len(signals_page1)} записей")

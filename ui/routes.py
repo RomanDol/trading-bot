@@ -108,7 +108,7 @@ class RouteHandlers:
 
     @staticmethod
     def handle_signals_data():
-        """API endpoint для получения данных сигналов"""
+        """API endpoint для получения данных сигналов с пагинацией"""
         try:
             # Получаем параметры фильтрации
             filters = {
@@ -123,8 +123,24 @@ class RouteHandlers:
             # Убираем пустые фильтры
             filters = {k: v for k, v in filters.items() if v}
             
-            # Получаем данные
-            data = get_signals_data(filters)
+            # Получаем параметры пагинации
+            try:
+                limit = int(request.args.get('limit', 50))  # По умолчанию 50 записей
+                page = int(request.args.get('page', 1))     # По умолчанию первая страница
+                
+                # Валидируем параметры
+                limit = max(10, min(limit, 1000))  # От 10 до 1000 записей
+                page = max(1, page)                 # Минимум первая страница
+                
+                offset = (page - 1) * limit
+                
+            except (ValueError, TypeError):
+                limit = 50
+                page = 1
+                offset = 0
+            
+            # Получаем данные с пагинацией
+            data = get_signals_data(filters, limit, offset)
             
             return jsonify(data)
             
@@ -134,7 +150,14 @@ class RouteHandlers:
                 'rows': [],
                 'columns': [],
                 'column_map': {},
-                'total_found': 0
+                'total_found': 0,
+                'total_count': 0,
+                'current_page': 1,
+                'total_pages': 1,
+                'has_next': False,
+                'has_prev': False,
+                'limit': 50,
+                'offset': 0
             }), 500
 
     @staticmethod
@@ -198,8 +221,8 @@ class RouteHandlers:
             # Убираем пустые фильтры
             filters = {k: v for k, v in filters.items() if v}
             
-            # Получаем ВСЕ данные (без лимита)
-            data = get_signals_data(filters, limit=10000)  # Большой лимит для экспорта
+            # Получаем ВСЕ данные (без лимита для экспорта)
+            data = get_signals_data(filters, limit=10000, offset=0)
             
             # Получаем конфигурацию колонок
             columns_config = load_columns_config()

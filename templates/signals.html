@@ -21,20 +21,56 @@
     <a href="/" class="btn">
         <span style="transform: scale(-1, 1); display: inline-block; color: green;">➜</span> Back
     </a>
-    <button id="columns-btn" class="btn">⚙️ Configure Columns</button>
+    <button id="settings-btn" class="btn">⚙️ Settings</button>
     <button id="refresh-btn" class="btn">⏸️ Pause</button>
     <button class="btn" id="reset-columns-btn">🔄 Reset Columns</button>
     <button id="export-btn" class="btn">📊 Export to Excel</button>
+    <button id="toggle-pagination-btn" class="btn">📄 Hide Pagination</button>
 </div>
 
-<div id="columns-panel" class="columns-panel">
-    <h3>📊 Column Configuration</h3>
-    <div class="columns-grid" id="columns-grid">
-        <!-- Динамически заполняется через JavaScript -->
+<div id="settings-panel" class="settings-panel" style="display: none; background: linear-gradient(145deg, #1a1a1a, #2a2a2a); border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);">
+    <h3 style="color: #00ccff; text-align: center; margin-bottom: 20px;">⚙️ Settings</h3>
+    
+    <!-- Настройка колонок -->
+    <div class="settings-section" style="background: linear-gradient(145deg, #222, #2a2a2a); border: 1px solid #444; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+        <h4 style="color: #00ff88; margin-bottom: 15px;">📊 Column Configuration</h4>
+        <div class="columns-grid" id="columns-grid">
+            <!-- Динамически заполняется через JavaScript -->
+        </div>
+        <p class="settings-help" style="color: #888; font-size: 12px; margin-top: 10px; font-style: italic;">
+            ✓ Checkboxes control visibility • Numbers set order • Changes save automatically
+        </p>
     </div>
-    <p class="columns-help">
-        ✓ Checkboxes control visibility • Numbers set order • Changes save automatically
-    </p>
+    
+    <!-- Настройка пагинации -->
+    <div class="settings-section" style="background: linear-gradient(145deg, #222, #2a2a2a); border: 1px solid #444; border-radius: 6px; padding: 15px;">
+        <h4 style="color: #00ff88; margin-bottom: 15px;">📄 Pagination Settings</h4>
+        <div class="pagination-settings">
+            <label for="rows-per-page-input" style="color: #ccc;">Rows per page:</label>
+            <input type="number" id="rows-per-page-input" min="1" max="10000" value="50" class="rows-input">
+            <button id="apply-rows-btn" class="btn btn-small">Apply</button>
+        </div>
+        <p class="settings-help" style="color: #888; font-size: 12px; margin-top: 10px; font-style: italic;">
+            Enter any number from 1 to 10000 rows per page
+        </p>
+    </div>
+</div>
+
+<!-- Панель пагинации -->
+<div class="pagination-controls" id="pagination-controls-top">
+    <div class="pagination-buttons" id="pagination-buttons">
+        <button id="first-page-btn" class="btn pagination-btn" title="Первая страница">⏮️</button>
+        <button id="prev-page-btn" class="btn pagination-btn" title="Предыдущая страница">⬅️</button>
+        
+        <div class="page-input-group">
+            <span>Page</span>
+            <input type="number" id="current-page-input" min="1" value="1" class="page-input">
+            <span id="total-pages-span">of 1</span>
+        </div>
+        
+        <button id="next-page-btn" class="btn pagination-btn" title="Следующая страница">➡️</button>
+        <button id="last-page-btn" class="btn pagination-btn" title="Последняя страница">⏭️</button>
+    </div>
 </div>
 
 <form method="get" class="filter-form">
@@ -66,6 +102,23 @@
             <!-- Данные загружаются через AJAX -->
         </tbody>
     </table>
+</div>
+
+<!-- Дублируем только кнопки пагинации снизу для удобства -->
+<div class="pagination-controls bottom-pagination" id="pagination-controls-bottom">
+    <div class="pagination-buttons">
+        <button id="first-page-btn-bottom" class="btn pagination-btn" title="Первая страница">⏮️</button>
+        <button id="prev-page-btn-bottom" class="btn pagination-btn" title="Предыдущая страница">⬅️</button>
+        
+        <div class="page-input-group">
+            <span>Page</span>
+            <input type="number" id="current-page-input-bottom" min="1" value="1" class="page-input">
+            <span id="total-pages-span-bottom">of 1</span>
+        </div>
+        
+        <button id="next-page-btn-bottom" class="btn pagination-btn" title="Следующая страница">➡️</button>
+        <button id="last-page-btn-bottom" class="btn pagination-btn" title="Последняя страница">⏭️</button>
+    </div>
 </div>
 {% endblock %}
 
