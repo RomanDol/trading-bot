@@ -62,6 +62,11 @@ def get_columns_config():
     """API: Получение конфигурации колонок"""
     return ROUTE_HANDLERS['get_columns_config']()
 
+@app.route('/export_excel')
+def export_excel():
+    """API: Экспорт данных в Excel"""
+    return ROUTE_HANDLERS['export_excel']()
+
 # ===== ФИЛЬТРЫ JINJA2 =====
 
 @app.template_filter('tojsonfilter')

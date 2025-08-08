@@ -14,7 +14,7 @@
   "extra_data": {
     "name": "Extra Data",
     "order": 9,
-    "visible": true,
+    "visible": false,
     "width": "100px"
   },
   "id": {
@@ -61,7 +61,7 @@
   },
   "json_custom_param": {
     "name": "custom_param",
-    "visible": false,
+    "visible": true,
     "order": 10
   },
   "json_custom_param-2": {

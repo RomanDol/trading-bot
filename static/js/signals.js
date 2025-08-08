@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let jsonColumns = new Set();
     
     // Инициализация
-    init();
-    
     function init() {
         loadColumnsConfig();
         setupEventHandlers();
@@ -24,7 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         console.log('📊 Signals page инициализирован');
+        console.log('🔒 Файл columns_config.json НЕ будет перезаписан при загрузке/фильтрации');
     }
+    
+    // Запускаем инициализацию
+    init();
     
     // ===== КОНФИГУРАЦИЯ КОЛОНОК =====
     
@@ -33,12 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const appData = DOM.get('app-data');
             const configData = appData.getAttribute('data-columns-config');
             columnsConfig = JSON.parse(configData);
+            console.log('📋 Загружена конфигурация из HTML (БЕЗ перезаписи файла)');
         } catch (e) {
             console.error('Ошибка загрузки конфигурации колонок:', e);
             // Резервная конфигурация
             columnsConfig = getDefaultColumnsConfig();
         }
-        console.log('Загружена конфигурация колонок:', columnsConfig);
+        console.log('Конфигурация колонок:', Object.keys(columnsConfig).length, 'колонок');
     }
     
     function getDefaultColumnsConfig() {
@@ -100,11 +103,13 @@ document.addEventListener('DOMContentLoaded', function() {
     async function saveColumnsConfig() {
         try {
             const result = await API.post('/save_columns_config', columnsConfig);
-            if (result.status !== 'success') {
-                console.error('Ошибка сохранения:', result.message);
+            if (result.status === 'success') {
+                console.log('✅ Конфигурация колонок сохранена');
+            } else {
+                console.error('❌ Ошибка сохранения:', result.message);
             }
         } catch (e) {
-            console.error('Ошибка сохранения конфигурации:', e);
+            console.error('❌ Ошибка сохранения конфигурации:', e);
         }
     }
     
@@ -180,21 +185,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Добавляем новые поля в конфигурацию
+        // Добавляем ТОЛЬКО новые поля, НЕ перезаписывая существующие
         let configUpdated = false;
         newJsonFields.forEach(field => {
             const jsonKey = `json_${field}`;
-            if (!columnsConfig[jsonKey]) {
+            if (!columnsConfig[jsonKey]) {  // Только если колонки еще НЕТ
                 columnsConfig[jsonKey] = {
                     name: field,
-                    visible: false,
+                    visible: false,  // По умолчанию скрыты
                     order: Object.keys(columnsConfig).length
                 };
                 jsonColumns.add(jsonKey);
                 configUpdated = true;
+                console.log(`➕ Добавлена новая JSON колонка: ${field} (скрыта)`);
             }
         });
         
+        // СОХРАНЯЕМ конфигурацию только если есть НОВЫЕ колонки
         if (configUpdated) {
             updateColumnsPanel();
             saveColumnsConfig();
@@ -372,6 +379,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const resetBtn = DOM.get('reset-columns-btn');
         resetBtn.addEventListener('click', resetColumns);
         
+        // Кнопка экспорта в Excel
+        const exportBtn = DOM.get('export-btn');
+        exportBtn.addEventListener('click', exportToExcel);
+        
         // Останавливаем автообновление при уходе со страницы
         window.addEventListener('beforeunload', stopAutoRefresh);
         
@@ -398,7 +409,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // ===== ЭКСПОРТ ДЛЯ ОТЛАДКИ =====
+    // ===== ЭКСПОРТ В EXCEL =====
+    
+    async function exportToExcel() {
+        try {
+            Notifications.info('Подготовка Excel файла...');
+            
+            // Получаем текущие параметры фильтрации
+            const params = new URLSearchParams(window.location.search);
+            
+            // Создаем ссылку для скачивания
+            const exportUrl = '/export_excel?' + params.toString();
+            
+            // Создаем временную ссылку и кликаем по ней
+            const link = document.createElement('a');
+            link.href = exportUrl;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            Notifications.success('Excel файл скачивается...');
+            
+        } catch (error) {
+            console.error('Ошибка экспорта в Excel:', error);
+            Notifications.error('Ошибка экспорта в Excel');
+        }
+    }
     
     // Делаем функции доступными глобально для отладки
     window.SignalsPage = {
@@ -407,6 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resetColumns,
         toggleColumnsPanel,
         columnsConfig: () => columnsConfig,
-        autoRefresh: () => autoRefresh
+        autoRefresh: () => autoRefresh,
+        reloadConfig: loadColumnsConfig  // Для отладки
     };
 });

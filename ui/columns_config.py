@@ -1,3 +1,4 @@
+# ===== ui/columns_config.py =====
 """
 Модуль для управления конфигурацией колонок таблицы сигналов
 Перенесено из columns_config.py
@@ -19,7 +20,7 @@ DEFAULT_COLUMNS = {
     'strategy': {'name': 'Strategy', 'visible': True, 'order': 6, 'width': '120px'},
     'message': {'name': 'Message', 'visible': False, 'order': 7, 'width': '200px'},
     'code': {'name': 'Code', 'visible': False, 'order': 8, 'width': '80px'},
-    'extra_data': {'name': 'Extra Data', 'visible': False, 'order': 9, 'width': '100px'}
+    'extra_data': {'name': 'Extra Data', 'visible': False, 'order': 9, 'width': '100px'}  # Скрыта по умолчанию
 }
 
 def load_columns_config():
@@ -28,10 +29,17 @@ def load_columns_config():
         if os.path.exists(COLUMNS_CONFIG_FILE):
             with open(COLUMNS_CONFIG_FILE, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                return sync_with_database(config)
+                # Проверяем что конфигурация не пустая
+                if config and len(config) > 0:
+                    print(f"✅ Загружена существующая конфигурация: {len(config)} колонок")
+                    # НЕ СИНХРОНИЗИРУЕМ С БД! Возвращаем как есть!
+                    return config
+                else:
+                    print("⚠️ Конфигурационный файл пустой, создаем новый")
     except Exception as e:
         print(f"❌ Ошибка загрузки конфигурации колонок: {e}")
     
+    print("🔧 Создаем конфигурацию по умолчанию")
     return sync_with_database(DEFAULT_COLUMNS.copy())
 
 def save_columns_config(config):
@@ -45,22 +53,47 @@ def save_columns_config(config):
         print(f"❌ Ошибка сохранения конфигурации колонок: {e}")
         return False
 
-def sync_with_database(config):
-    """Синхронизирует конфигурацию с реальными колонками БД"""
+def add_missing_columns_to_config(config):
+    """Добавляет новые колонки из БД в существующую конфигурацию (без автосохранения)"""
+    db_columns = db_manager.get_columns()
+    updated = False
+    
+    # Добавляем ТОЛЬКО новые колонки из БД
+    for col in db_columns:
+        if col not in config:
+            # Только основные колонки видимы по умолчанию
+            is_visible = col in ['id', 'timestamp', 'action', 'symbol', 'quantity', 'result', 'strategy']
+            
+            config[col] = {
+                'name': col.replace('_', ' ').title(),
+                'visible': is_visible,
+                'order': len(config),
+                'width': '100px'
+            }
+            updated = True
+            print(f"➕ Добавлена новая колонка: {col} (visible: {is_visible})")
+    
+    return config, updated
+
+def sync_with_database(config, auto_save=True):
+    """Синхронизирует конфигурацию с реальными колонками БД (ТОЛЬКО для создания новой конфигурации)"""
     db_columns = db_manager.get_columns()
     updated = False
     
     # Добавляем новые колонки из БД
     for col in db_columns:
         if col not in config:
+            # Только основные колонки видимы по умолчанию
+            is_visible = col in ['id', 'timestamp', 'action', 'symbol', 'quantity', 'result', 'strategy']
+            
             config[col] = {
                 'name': col.replace('_', ' ').title(),
-                'visible': True if col in ['id', 'timestamp', 'action', 'symbol'] else False,
+                'visible': is_visible,
                 'order': len(config),
                 'width': '100px'
             }
             updated = True
-            print(f"➕ Добавлена новая колонка: {col}")
+            print(f"➕ Добавлена новая колонка: {col} (visible: {is_visible})")
     
     # Удаляем колонки, которых нет в БД
     config_keys = list(config.keys())
@@ -70,8 +103,10 @@ def sync_with_database(config):
             updated = True
             print(f"➖ Удалена колонка: {col}")
     
-    if updated:
+    # Сохраняем только если есть изменения И разрешено автосохранение
+    if updated and auto_save:
         save_columns_config(config)
+        print("💾 Конфигурация автоматически создана")
         
     return config
 
