@@ -200,44 +200,9 @@
     background: #2a3a2a;
 }
 
-/* ===== МОБИЛЬНЫЕ УСТРОЙСТВА ===== */
 
-@media (max-width: 768px) {
-    body {
-        padding: 20px;
-    }
-    
-    .filter-form {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .filter-form input {
-        width: 100%;
-        max-width: 200px;
-    }
-    
-    .columns-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .scroll-table table {
-        font-size: 11px;
-        min-width: 1000px;
-    }
-    
-    .scroll-table th,
-    .scroll-table td {
-        padding: 6px 4px;
-    }
-}
-
-@media (max-width: 480px) {
-    .controls .btn {
-        display: block;
-        width: 100%;
-        margin: 5px 0;
-    }
+.refresh-btn.active {
+    border-color: #00ff88a0;
 }
 
 
@@ -252,10 +217,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px auto;
-    padding: 8px 12px;
+    margin: 10px auto;
+    padding: 0px 0px;
     width: fit-content;
-    min-width: 350px;
+    /* min-width: 350px; */
     min-height: 50px;
 }
 
@@ -264,9 +229,9 @@
     visibility: hidden !important;
 }
 
-.pagination-controls.bottom-pagination {
+/* .pagination-controls.bottom-pagination {
     margin-top: 20px;
-}
+} */
 
 .pagination-buttons {
     display: flex;
@@ -296,16 +261,17 @@
     margin: 0 10px;
     color: #ccc;
     font-size: 14px;
+    flex-direction: column;
 }
 
 .page-input {
     width: 60px;
     text-align: center;
-    background: #333;
-    border: 1px solid #555;
+    background: none;
+    border: none;
     color: white;
-    padding: 6px;
-    border-radius: 4px;
+    padding: 0;
+    border: none;
     font-size: 14px;
 }
 
@@ -325,124 +291,3 @@
     -moz-appearance: textfield;
 }
 
-/* ===== LOADING СОСТОЯНИЕ ДЛЯ ПАГИНАЦИИ ===== */
-
-.pagination-loading {
-    pointer-events: none;
-    opacity: 0.6;
-}
-
-.pagination-loading .pagination-btn {
-    position: relative;
-}
-
-.pagination-loading .pagination-btn.active::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 12px;
-    height: 12px;
-    margin: -6px 0 0 -6px;
-    border: 2px solid #00ff88;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 0.8s linear infinite;
-}
-
-/* Стабилизация блока пагинации при обновлении */
-.pagination-controls {
-    /* Убираем все что может вызывать дерганье */
-}
-
-.pagination-buttons {
-    min-width: 340px; /* Фиксированная ширина для стабильности */
-    justify-content: center;
-}
-
-/* ===== МОБИЛЬНЫЕ УСТРОЙСТВА ===== */
-
-@media (max-width: 768px) {
-    body {
-        padding: 20px;
-    }
-    
-    .filter-form {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .filter-form input {
-        width: 100%;
-        max-width: 200px;
-    }
-    
-    .columns-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .scroll-table table {
-        font-size: 11px;
-        min-width: 1000px;
-    }
-    
-    .scroll-table th,
-    .scroll-table td {
-        padding: 6px 4px;
-    }
-    
-    .pagination-controls {
-        width: auto;
-        min-width: 280px;
-        padding: 6px 10px;
-    }
-    
-    .pagination-buttons {
-        justify-content: center;
-        flex-wrap: wrap;
-        min-width: auto;
-        gap: 5px;
-    }
-    
-    .page-input-group {
-        margin: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .controls .btn {
-        display: block;
-        width: 100%;
-        margin: 5px 0;
-    }
-    
-    .pagination-btn {
-        min-width: 35px;
-        padding: 6px 8px;
-        font-size: 12px;
-    }
-    
-    .page-input {
-        width: 50px;
-        font-size: 12px;
-    }
-    
-    .pagination-info {
-        text-align: center;
-        font-size: 12px;
-    }
-    
-    .settings-panel {
-        padding: 15px;
-    }
-    
-    .settings-section {
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-    }
-    
-    .pagination-settings {
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-}

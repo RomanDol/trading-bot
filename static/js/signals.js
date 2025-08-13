@@ -25,9 +25,6 @@ function setPaginationLoading(isLoading) {
             DOM.get('pagination-controls-bottom')
         ];
         
-        console.log('🔄 Переключение пагинации:', paginationState.isVisible ? 'показать' : 'скрыть');
-        console.log('📋 Найденные элементы:', paginationControls.map(el => el ? el.id : 'null'));
-        
         if (paginationState.isVisible) {
             btn.textContent = '📄 Hide Pagination';
             btn.classList.remove('active');
@@ -35,33 +32,27 @@ function setPaginationLoading(isLoading) {
                 if (control) {
                     control.classList.remove('hidden');
                     control.style.display = 'flex'; // Принудительно показываем
-                    console.log(`✅ Показан элемент: ${control.id}`);
                 }
             });
             
             // Сохраняем состояние
             localStorage.setItem('pagination_visible', 'true');
-            console.log('📄 Пагинация показана');
         } else {
-            btn.textContent = '📄 Show Pagination';
             btn.classList.add('active');
             paginationControls.forEach(control => {
                 if (control) {
                     control.classList.add('hidden');
                     control.style.display = 'none'; // Принудительно скрываем
-                    console.log(`❌ Скрыт элемент: ${control.id}`);
                 }
             });
             
             // Сохраняем состояние
             localStorage.setItem('pagination_visible', 'false');
-            console.log('📄 Пагинация скрыта');
         }
     }
     
     function loadPaginationVisibility() {
         const savedVisibility = localStorage.getItem('pagination_visible');
-        console.log('💾 Загруженное состояние пагинации:', savedVisibility);
         
         if (savedVisibility === 'false') {
             // Принудительно скрываем пагинацию
@@ -72,17 +63,14 @@ function setPaginationLoading(isLoading) {
                 DOM.get('pagination-controls-bottom')
             ];
             
-            btn.textContent = '📄 Show Pagination';
             btn.classList.add('active');
             paginationControls.forEach(control => {
                 if (control) {
                     control.classList.add('hidden');
                     control.style.display = 'none';
-                    console.log(`🔒 Скрыт при загрузке: ${control.id}`);
                 }
             });
             
-            console.log('📄 Пагинация скрыта при загрузке');
         }
     }
             // ===== JAVASCRIPT ДЛЯ SIGNALS PAGE С ПАГИНАЦИЕЙ =====
@@ -118,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (savedVisibility === 'false') {
             document.getElementById('pagination-controls-top').style.display = 'none';
             document.getElementById('pagination-controls-bottom').style.display = 'none';
-            document.getElementById('toggle-pagination-btn').textContent = '📄 Show Pagination';
             document.getElementById('toggle-pagination-btn').classList.add('active');
         }
         
@@ -130,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
             startAutoRefresh();
         }
         
-        console.log('📊 Signals page инициализирован');
     }
     
     // Запускаем инициализацию
@@ -143,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const appData = DOM.get('app-data');
             const configData = appData.getAttribute('data-columns-config');
             columnsConfig = JSON.parse(configData);
-            console.log('📋 Загружена конфигурация из HTML');
         } catch (e) {
             console.error('Ошибка загрузки конфигурации колонок:', e);
             columnsConfig = getDefaultColumnsConfig();
@@ -450,71 +435,82 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== ЗАГРУЗКА ДАННЫХ =====
-    
+
+
+
+
+
+
+    // static/js/signals.js
     async function fetchSignals() {
         try {
-            // Показываем состояние загрузки
-            setPaginationLoading(true);
-            
+            // показываем загрузку только при ручных запросах
+            if (!window.isAutoRefreshing) {
+                setPaginationLoading(true);
+            }
+
             const params = new URLSearchParams(window.location.search);
-            
-            // Добавляем параметры пагинации
             params.set('limit', paginationState.limit);
             params.set('page', paginationState.currentPage);
-            
+
             const data = await API.get("/signals_data?" + params.toString());
-            
             if (data.error) {
                 console.error('API Error:', data.error);
                 Notifications.error('Ошибка загрузки данных');
                 return;
             }
-            
-            // Обновляем состояние пагинации
-            paginationState = {
-                currentPage: data.current_page || 1,
-                totalPages: data.total_pages || 1,
-                limit: data.limit || 50,
-                totalCount: data.total_count || 0,
-                hasNext: data.has_next || false,
-                hasPrev: data.has_prev || false
-            };
-            
-            // Анализируем и создаем JSON колонки
+
+            // обновляем параметры пагинации только при ручных запросах
+            if (!window.isAutoRefreshing) {
+                paginationState = {
+                    currentPage: data.current_page || 1,
+                    totalPages: data.total_pages || 1,
+                    limit: data.limit || 50,
+                    totalCount: data.total_count || 0,
+                    hasNext: data.has_next || false,
+                    hasPrev: data.has_prev || false
+                };
+            }
+
             analyzeAndCreateJsonColumns(data);
-            
             const tableBody = DOM.get("signal-body");
             tableBody.innerHTML = "";
-            
-            data.rows.forEach((row) => {
+
+            data.rows.forEach(row => {
                 const tr = DOM.create('tr');
-                
                 const sortedColumns = Object.entries(columnsConfig)
                     .sort((a, b) => a[1].order - b[1].order);
-                    
+
                 sortedColumns.forEach(([columnKey, config]) => {
                     const td = DOM.create('td');
                     td.setAttribute('data-column', columnKey);
-                    
-                    let cellValue = getCellValue(row, columnKey, data);
-                    formatCell(td, cellValue, columnKey);
-                    
+                    formatCell(td, getCellValue(row, columnKey, data), columnKey);
                     tr.appendChild(td);
                 });
-                
+
                 tableBody.appendChild(tr);
             });
-            
+
             applyColumnVisibility();
-            updatePaginationUI();
-                
+            updatePaginationUI(); // сама функция игнорирует автообновления
         } catch (error) {
             console.error("Failed to fetch signals:", error);
             Notifications.error("Ошибка загрузки данных сигналов");
         } finally {
-            setPaginationLoading(false);
+            if (!window.isAutoRefreshing) {
+                setPaginationLoading(false);
+            }
         }
     }
+
+
+
+
+
+
+
+
+
     
     function setCellValue(row, columnKey, data) {
         if (columnKey.startsWith('json_')) {
@@ -598,15 +594,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = DOM.get('refresh-btn');
         
         if (autoRefresh) {
-            btn.textContent = '⏸️ Pause';
             btn.classList.remove('active');
             startAutoRefresh();
-            console.log('🔄 Автообновление запущено');
         } else {
-            btn.textContent = '▶️ Resume';
             btn.classList.add('active');
             stopAutoRefresh();
-            console.log('⏸️ Автообновление на паузе');
         }
     }
     
@@ -658,14 +650,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Показываем
                 top.style.display = 'flex';
                 bottom.style.display = 'flex';
-                btn.textContent = '📄 Hide Pagination';
                 btn.classList.remove('active');
                 localStorage.setItem('pagination_visible', 'true');
             } else {
                 // Скрываем
                 top.style.display = 'none';
                 bottom.style.display = 'none';
-                btn.textContent = '📄 Show Pagination';
                 btn.classList.add('active');
                 localStorage.setItem('pagination_visible', 'false');
             }
