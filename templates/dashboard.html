@@ -7,51 +7,37 @@
 {% endblock %}
 
 {% block content %}
-<div class="header">
-    <h1>Dashboard</h1>
-</div>
 
-<div class="dashboard-controls">
-    <!-- Active pages -->
-    <a href="/control" class="btn-item">
-        ⚙️ Control Panel
-    </a>
-    
-    <a href="/signals" class="btn-item">
-        📊 Signal History
-    </a>
-    
-    <!-- Future pages -->
-    <div class="btn-item disabled">
-        📈 Analytics
+<div class="dashboard-content">
+
+
+    <!-- Статистика (если есть) -->
+    {% if stats %}
+    <div class="stats-section">
+        <h3>📈 Recent Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_signals or 0 }}</div>
+                <div class="stat-label">Total Signals</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.success_count or 0 }}</div>
+                <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.error_count or 0 }}</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            {% if stats.last_signal %}
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.last_signal[:10] }}</div>
+                <div class="stat-label">Last Signal</div>
+            </div>
+            {% endif %}
+        </div>
     </div>
+    {% endif %}
     
-    <div class="btn-item disabled">
-        🎯 Strategy Manager
-    </div>
-    
-    <div class="btn-item disabled">
-        💰 Portfolio
-    </div>
-    
-    <div class="btn-item disabled">
-        🔔 Notifications
-    </div>
-    
-    <div class="btn-item disabled">
-        ⚡ Risk Manager
-    </div>
-    
-    <div class="btn-item disabled">
-        🔧 API Settings
-    </div>
-    
-    <div class="btn-item disabled">
-        📱 Mobile Alerts
-    </div>
-    
-    <div class="btn-item disabled">
-        🏆 Performance
-    </div>
+
 </div>
 {% endblock %}

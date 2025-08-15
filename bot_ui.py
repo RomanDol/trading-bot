@@ -18,13 +18,13 @@ def auth_middleware():
 
 # ===== ОСНОВНЫЕ МАРШРУТЫ =====
 
-@app.route('/')
+@app.route('/', endpoint='dashboard')
 def dashboard():
     """Главная страница - дашборд"""
     data = ROUTE_HANDLERS['dashboard_get']()
     return render_template('dashboard.html', **data)
 
-@app.route('/control', methods=['GET', 'POST'])
+@app.route('/control', methods=['GET', 'POST'], endpoint='control')
 def control():
     """Страница управления сервисом"""
     if request.method == 'POST':
@@ -34,7 +34,7 @@ def control():
     
     return render_template('control.html', **data)
 
-@app.route('/signals')
+@app.route('/signals', endpoint='signals')
 def signals():
     """Страница истории сигналов"""
     data = ROUTE_HANDLERS['signals_get']()

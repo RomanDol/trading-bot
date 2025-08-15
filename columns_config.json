@@ -8,7 +8,7 @@
   "code": {
     "name": "Code",
     "order": 8,
-    "visible": false,
+    "visible": true,
     "width": "80px"
   },
   "extra_data": {
@@ -26,13 +26,13 @@
   "message": {
     "name": "Message",
     "order": 7,
-    "visible": false,
+    "visible": true,
     "width": "200px"
   },
   "quantity": {
     "name": "Qty",
     "order": 4,
-    "visible": false,
+    "visible": true,
     "width": "80px"
   },
   "result": {
@@ -66,12 +66,12 @@
   },
   "json_custom_param-2": {
     "name": "custom_param-2",
-    "visible": false,
+    "visible": true,
     "order": 11
   },
   "json_custom_param-3": {
     "name": "custom_param-3",
-    "visible": false,
+    "visible": true,
     "order": 12
   }
 }

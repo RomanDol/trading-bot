@@ -14,17 +14,118 @@
     
     <!-- Common CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
     
     <!-- Page-specific CSS -->
     {% block css %}{% endblock %}
 </head>
 <body>
+    <!-- Navigation Header -->
+    <nav class="main-nav">
+        <!-- Desktop Navigation -->
+        <div class="nav-desktop">
+            
+            <p class="status-indicator {% if status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                <span class="status-dot"></span>SS
+            </p>
+            
+            <div class="nav-menu">
+
+                <a href="/" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    📈 Dashboard
+                </a>
+                <a href="/control" class="nav-item {% if request.endpoint == 'control' %}active{% endif %}">
+                    ⚙️ Control Panel
+                </a>
+                <a href="/signals" class="nav-item {% if request.endpoint == 'signals' %}active{% endif %}">
+                    📊 Signal History
+                </a>
+                <div class="nav-item disabled">
+                    📈 Analytics
+                </div>
+                <div class="nav-item disabled">
+                    🎯 Strategy Manager
+                </div>
+                <div class="nav-item disabled">
+                    💰 Portfolio
+                </div>
+                <div class="nav-item disabled">
+                    🔔 Notifications
+                </div>
+                <div class="nav-item disabled">
+                    ⚡ Risk Manager
+                </div>
+                <div class="nav-item disabled">
+                    🔧 API Settings
+                </div>
+                <div class="nav-item disabled">
+                    📱 Mobile Alerts
+                </div>
+                <div class="nav-item disabled">
+                    🏆 Performance
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div class="nav-mobile">
+            <p class="status-indicator {% if status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                <span class="status-dot"></span>SS
+            </p>
+            <button class="burger-btn" id="burger-btn">
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobile-menu">
+            <div class="mobile-menu-content">
+                <a href="/" class="mobile-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    📈 Dashboard
+                </a>
+                <a href="/control" class="mobile-nav-item {% if request.endpoint == 'control' %}active{% endif %}">
+                    ⚙️ Control Panel
+                </a>
+                <a href="/signals" class="mobile-nav-item {% if request.endpoint == 'signals' %}active{% endif %}">
+                    📊 Signal History
+                </a>
+                <div class="mobile-nav-item disabled">
+                    📈 Analytics
+                </div>
+                <div class="mobile-nav-item disabled">
+                    🎯 Strategy Manager
+                </div>
+                <div class="mobile-nav-item disabled">
+                    💰 Portfolio
+                </div>
+                <div class="mobile-nav-item disabled">
+                    🔔 Notifications
+                </div>
+                <div class="mobile-nav-item disabled">
+                    ⚡ Risk Manager
+                </div>
+                <div class="mobile-nav-item disabled">
+                    🔧 API Settings
+                </div>
+                <div class="mobile-nav-item disabled">
+                    📱 Mobile Alerts
+                </div>
+                <div class="mobile-nav-item disabled">
+                    🏆 Performance
+                </div>
+            </div>
+        </div>
+    </nav>
+    
     <div class="page-wrapper">
         {% block content %}{% endblock %}
     </div>
     
     <!-- Common JavaScript -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
     
     <!-- Page-specific JavaScript -->
     {% block js %}{% endblock %}
