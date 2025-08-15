@@ -11,8 +11,8 @@ class AuthManager:
     """Класс для управления аутентификацией"""
     
     def __init__(self):
-        self.username = os.getenv('UI_USERNAME', 'admin')
-        self.password = os.getenv('UI_PASSWORD', '1234')
+        self.username = os.getenv('UI_USERNAME')
+        self.password = os.getenv('UI_PASSWORD')
     
     def check_auth(self, username: str, password: str) -> bool:
         """Проверка учетных данных"""
@@ -44,11 +44,6 @@ class AuthManager:
 
 # Создаем глобальный экземпляр для использования в приложении
 auth_manager = AuthManager()
-
-# Функция для использования в Flask before_request
-def require_auth():
-    """Функция для использования в Flask before_request декораторе"""
-    return auth_manager.require_auth()
 
 if __name__ == "__main__":
     # Тестирование модуля

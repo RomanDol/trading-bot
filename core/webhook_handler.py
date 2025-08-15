@@ -4,7 +4,7 @@
 import os
 import logging
 from typing import Dict, Any, Tuple
-from flask import request, jsonify
+from flask import request
 from dotenv import load_dotenv
 
 from .database import db_manager
@@ -205,12 +205,6 @@ class WebhookHandler:
 
 # Создаем глобальный экземпляр для использования в приложении
 webhook_handler = WebhookHandler()
-
-# Функция для использования в Flask route
-def handle_webhook():
-    """Функция для использования в Flask маршруте"""
-    response_data, status_code = webhook_handler.process_webhook()
-    return jsonify(response_data), status_code
 
 if __name__ == "__main__":
     # Тестирование модуля

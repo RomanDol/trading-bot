@@ -289,11 +289,6 @@ class DatabaseManager:
 # Создаем глобальный экземпляр для использования в приложении
 db_manager = DatabaseManager()
 
-# Экспортируем функции для обратной совместимости
-def log_signal(action, symbol, quantity, result, message, strategy='', extra_data=None):
-    """Обратная совместимость с существующим кодом"""
-    return db_manager.log_signal(action, symbol, quantity, result, message, strategy, extra_data)
-
 if __name__ == "__main__":
     # Тестирование модуля
     print("🧪 Тестирование модуля database...")

@@ -1,10 +1,10 @@
 """
 Главное Flask приложение для приема webhook сигналов и торговли
-Упрощенная версия с выносом логики в модули
+Очищенная версия без обратной совместимости
 """
 import logging
-from flask import Flask
-from core.webhook_handler import handle_webhook
+from flask import Flask, jsonify
+from core.webhook_handler import webhook_handler
 
 # ✅ Настройка логирования
 logging.basicConfig(
@@ -21,7 +21,8 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     """Основной endpoint для приема webhook сигналов"""
-    return handle_webhook()
+    response_data, status_code = webhook_handler.process_webhook()
+    return jsonify(response_data), status_code
 
 @app.route('/health')
 def health():

@@ -184,27 +184,6 @@ class BinanceClient:
 # Создаем глобальный экземпляр для использования в приложении
 binance_client = BinanceClient()
 
-# Экспортируем функции для обратной совместимости
-def adjust_quantity(symbol: str, qty: float) -> float:
-    """Обратная совместимость с precision.py"""
-    return binance_client.adjust_quantity(symbol, qty)
-
-def load_step_sizes():
-    """Обратная совместимость с precision.py"""
-    binance_client._load_step_sizes()
-
-def open_position(symbol: str, side: str, quantity: float) -> Tuple[bool, str]:
-    """Обратная совместимость с app.py"""
-    return binance_client.open_position(symbol, side, quantity)
-
-def close_position(symbol: str, side: str, quantity: float) -> Tuple[bool, str]:
-    """Обратная совместимость с app.py"""
-    return binance_client.close_position(symbol, side, quantity)
-
-def check_position_mode():
-    """Обратная совместимость с app.py"""
-    return binance_client.check_position_mode()
-
 if __name__ == "__main__":
     # Тестирование модуля
     print("🧪 Тестирование модуля binance_client...")

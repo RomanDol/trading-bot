@@ -349,18 +349,6 @@ class RouteHandlers:
 # Создаем экземпляр для использования
 route_handlers = RouteHandlers()
 
-# Маппинг маршрутов для упрощения регистрации (для обратной совместимости)
-ROUTE_HANDLERS = {
-    'dashboard_get': route_handlers.handle_dashboard,
-    'control_post': route_handlers.handle_control_post,
-    'signals_get': route_handlers.handle_signals,
-    'signals_data': route_handlers.handle_signals_data,
-    'save_columns_config': route_handlers.handle_save_columns_config,
-    'reset_columns': route_handlers.handle_reset_columns,
-    'get_columns_config': route_handlers.handle_get_columns_config,
-    'export_excel': route_handlers.handle_export_excel
-}
-
 if __name__ == "__main__":
     # Тестирование модуля
     print("🧪 Тестирование модуля routes...")
