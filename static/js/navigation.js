@@ -16,17 +16,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function openMobileMenu() {
-        mobileMenu.classList.add('open');
-        burgerBtn.classList.add('active');
-        body.classList.add('menu-open');
-    }
-    
-    function closeMobileMenu() {
-        mobileMenu.classList.remove('open');
-        burgerBtn.classList.remove('active');
-        body.classList.remove('menu-open');
-    }
+function openMobileMenu() {
+    mobileMenu.classList.add('mobile-menu-overlay--open');
+    burgerBtn.classList.add('burger-btn--active');
+    body.classList.add('menu-open');
+}
+
+function closeMobileMenu() {
+    mobileMenu.classList.remove('mobile-menu-overlay--open');
+    burgerBtn.classList.remove('burger-btn--active');
+    body.classList.remove('menu-open');
+}
     
     // Обработчики событий
     if (burgerBtn) {

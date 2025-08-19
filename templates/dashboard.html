@@ -3,17 +3,14 @@
 {% block title %}Dashboard - Trading Bot{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/dashboard.css') }}">
 {% endblock %}
 
 {% block content %}
-
 <div class="dashboard-content">
-
-
-    <!-- Статистика (если есть) -->
+    <!-- Статистика -->
     {% if stats %}
-    <div class="stats-section">
+    <section class="dashboard-section">
         <h3>📈 Recent Statistics</h3>
         <div class="stats-grid">
             <div class="stat-card">
@@ -35,9 +32,30 @@
             </div>
             {% endif %}
         </div>
-    </div>
+    </section>
     {% endif %}
     
-
+    <!-- Quick Actions -->
+    <section class="dashboard-section">
+        <h3>🚀 Quick Actions</h3>
+        <div class="action-buttons">
+            <a href="/control" class="action-btn">⚙️ Control Panel</a>
+            <a href="/signals" class="action-btn">📊 View Signals</a>
+            <a href="/health" class="action-btn">💚 Health Check</a>
+        </div>
+    </section>
+    
+    <!-- Service Status -->
+    <section class="dashboard-section">
+        <h3>🔧 Service Status</h3>
+        <div class="service-status service-status--{{ 'active' if status == 'active' else 'inactive' }}">
+            <span class="status-indicator__dot"></span>
+            {% if status == 'active' %}
+                ✅ Service is running
+            {% else %}
+                ❌ Service is not running
+            {% endif %}
+        </div>
+    </section>
 </div>
 {% endblock %}

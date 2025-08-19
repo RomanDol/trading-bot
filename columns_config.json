@@ -8,7 +8,7 @@
   "code": {
     "name": "Code",
     "order": 8,
-    "visible": true,
+    "visible": false,
     "width": "80px"
   },
   "extra_data": {

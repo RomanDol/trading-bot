@@ -1,7 +1,6 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>{% block title %}Trading Bot{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -13,11 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Trading Bot">
     
-    <!-- CSS Files - порядок важен! -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <!-- Common CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
     
     <!-- Page-specific CSS -->
     {% block css %}{% endblock %}
@@ -28,43 +25,43 @@
         <!-- Desktop Navigation -->
         <div class="nav-desktop">
             
-            <div class="status-indicator {% if status == 'active' %}status-indicator--active{% else %}status-indicator--inactive{% endif %}">
-                <span class="status-indicator__dot"></span>
-                SS
-            </div>
+            <p class="status-indicator {% if status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                <span class="status-dot"></span>SS
+            </p>
             
             <div class="nav-menu">
-                <a href="/" class="nav-item {% if request.endpoint == 'dashboard' %}nav-item--active{% endif %}">
+
+                <a href="/" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
                     📈 Dashboard
                 </a>
-                <a href="/control" class="nav-item {% if request.endpoint == 'control' %}nav-item--active{% endif %}">
+                <a href="/control" class="nav-item {% if request.endpoint == 'control' %}active{% endif %}">
                     ⚙️ Control Panel
                 </a>
-                <a href="/signals" class="nav-item {% if request.endpoint == 'signals' %}nav-item--active{% endif %}">
+                <a href="/signals" class="nav-item {% if request.endpoint == 'signals' %}active{% endif %}">
                     📊 Signal History
                 </a>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     📈 Analytics
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     🎯 Strategy Manager
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     💰 Portfolio
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     🔔 Notifications
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     ⚡ Risk Manager
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     🔧 API Settings
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     📱 Mobile Alerts
                 </div>
-                <div class="nav-item nav-item--disabled">
+                <div class="nav-item disabled">
                     🏆 Performance
                 </div>
             </div>
@@ -72,10 +69,9 @@
         
         <!-- Mobile Navigation -->
         <div class="nav-mobile">
-            <div class="status-indicator {% if status == 'active' %}status-indicator--active{% else %}status-indicator--inactive{% endif %}">
-                <span class="status-indicator__dot"></span>
-                SS
-            </div>
+            <p class="status-indicator {% if status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                <span class="status-dot"></span>SS
+            </p>
             <button class="burger-btn" id="burger-btn">
                 <span class="burger-line"></span>
                 <span class="burger-line"></span>
@@ -86,37 +82,37 @@
         <!-- Mobile Menu Overlay -->
         <div class="mobile-menu-overlay" id="mobile-menu">
             <div class="mobile-menu-content">
-                <a href="/" class="mobile-nav-item {% if request.endpoint == 'dashboard' %}mobile-nav-item--active{% endif %}">
+                <a href="/" class="mobile-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
                     📈 Dashboard
                 </a>
-                <a href="/control" class="mobile-nav-item {% if request.endpoint == 'control' %}mobile-nav-item--active{% endif %}">
+                <a href="/control" class="mobile-nav-item {% if request.endpoint == 'control' %}active{% endif %}">
                     ⚙️ Control Panel
                 </a>
-                <a href="/signals" class="mobile-nav-item {% if request.endpoint == 'signals' %}mobile-nav-item--active{% endif %}">
+                <a href="/signals" class="mobile-nav-item {% if request.endpoint == 'signals' %}active{% endif %}">
                     📊 Signal History
                 </a>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     📈 Analytics
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     🎯 Strategy Manager
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     💰 Portfolio
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     🔔 Notifications
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     ⚡ Risk Manager
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     🔧 API Settings
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     📱 Mobile Alerts
                 </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
+                <div class="mobile-nav-item disabled">
                     🏆 Performance
                 </div>
             </div>

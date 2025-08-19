@@ -1,0 +1,233 @@
+/* ===== БАЗОВЫЕ СТИЛИ ===== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    min-height: 100vh;
+    overflow-x: hidden;
+    margin: 0;
+}
+
+/* ===== ТИПОГРАФИЯ ===== */
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-tight);
+    margin-bottom: var(--spacing-md);
+}
+
+h1 {
+    font-size: var(--font-size-xxl);
+}
+
+h2 {
+    font-size: var(--font-size-xl);
+}
+
+h3 {
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+}
+
+h4 {
+    font-size: var(--font-size-md);
+}
+
+p {
+    margin-bottom: var(--spacing-md);
+    line-height: var(--line-height-relaxed);
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+a:hover {
+    color: var(--color-secondary);
+}
+
+a:focus {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+}
+
+/* ===== СПИСКИ ===== */
+
+ul, ol {
+    margin-bottom: var(--spacing-md);
+    padding-left: var(--spacing-lg);
+}
+
+li {
+    margin-bottom: var(--spacing-xs);
+}
+
+/* ===== ТАБЛИЦЫ ===== */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-base);
+}
+
+th, td {
+    padding: var(--spacing-sm) 6px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: var(--border-width) solid var(--table-border-color);
+}
+
+th {
+    background: var(--table-header-bg);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    font-weight: var(--font-weight-bold);
+}
+
+tr:nth-child(even) {
+    background: var(--bg-dark-tertiary);
+}
+
+tr:nth-child(odd) {
+    background: var(--bg-dark-secondary);
+}
+
+tr:hover {
+    background: var(--table-row-hover);
+}
+
+/* ===== ФОРМЫ ===== */
+
+input, select, textarea, button {
+    font-family: inherit;
+    font-size: var(--font-size-base);
+}
+
+input, select, textarea {
+    background: var(--input-bg);
+    border: var(--border-width) solid var(--input-border);
+    color: var(--text-secondary);
+    padding: var(--input-padding);
+    border-radius: var(--border-radius-base);
+    transition: border-color var(--transition-base), color var(--transition-base);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    color: var(--text-primary);
+}
+
+input:disabled, select:disabled, textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ===== ИЗОБРАЖЕНИЯ ===== */
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius-sm);
+}
+
+/* ===== CODE И PRE ===== */
+
+code, pre {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    background: var(--bg-dark-tertiary);
+    border-radius: var(--border-radius-sm);
+}
+
+code {
+    padding: 2px 4px;
+}
+
+pre {
+    padding: var(--spacing-md);
+    overflow-x: auto;
+    line-height: var(--line-height-base);
+    border: var(--border-width) solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+/* ===== ПРОКРУТКА ===== */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color-light);
+}
+
+/* ===== ВЫДЕЛЕНИЕ ТЕКСТА ===== */
+
+::selection {
+    background: var(--color-primary);
+    color: var(--bg-dark);
+}
+
+::-moz-selection {
+    background: var(--color-primary);
+    color: var(--bg-dark);
+}
+
+/* ===== ФОКУС ===== */
+
+:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===== ПЕЧАТЬ ===== */
+
+@media print {
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+}

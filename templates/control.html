@@ -3,33 +3,40 @@
 {% block title %}Control Panel - Trading Bot{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/control.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/control.css') }}">
 {% endblock %}
 
 {% block content %}
 
-<!-- Legacy controls for compatibility -->
-<div class="legacy-controls">
+<!-- Control Buttons -->
+<div class="control-buttons">
    <form method="post">
-        <button name="action" value="start">▶️ Start</button>
-        <button name="action" value="stop">⏹️ Stop</button>
-        <button name="action" value="restart">🔁 Restart</button>
-        <button name="action" value="logs">📄 Show Logs</button>
+        <button name="action" value="start" class="control-btn">▶️ Start</button>
+        <button name="action" value="stop" class="control-btn">⏹️ Stop</button>
+        <button name="action" value="restart" class="control-btn">🔁 Restart</button>
+        <button name="action" value="logs" class="control-btn">📄 Show Logs</button>
     </form>
 </div>
 
+<!-- Logs Section -->
 {% if logs %}
-<div class="logs-section">
+<section class="logs-section">
     <h3>📄 Last 30 Log Lines</h3>
-    <pre id="logs-content">{{ logs }}</pre>
-</div>
+    <div class="logs-container">
+        <pre class="logs-content">{{ logs }}</pre>
+    </div>
+</section>
 {% endif %}
 
+<!-- Message Section -->
 {% if message %}
-<div class="message-section">
-    <div class="message">{{ message }}</div>
-</div>
+<section class="message-section">
+    <div class="control-message {% if 'успешно' in message.lower() or 'success' in message.lower() %}control-message--success{% elif 'ошибка' in message.lower() or 'error' in message.lower() %}control-message--error{% else %}control-message--info{% endif %}">
+        {{ message }}
+    </div>
+</section>
 {% endif %}
+
 {% endblock %}
 
 {% block js %}
