@@ -4,17 +4,30 @@ window.SignalsJSON = (function() {
     let jsonColumns = new Set();
     
     function analyzeAndCreateJsonColumns(data) {
+        // Обрабатываем extra_data для webhook_* колонок
         const extraDataIndex = data.column_map['extra_data'];
-        if (extraDataIndex === undefined) return;
+        if (extraDataIndex !== undefined) {
+            analyzeJsonField(data, extraDataIndex, 'webhook_');
+        }
         
+        // Обрабатываем message для binance_* колонок
+        const messageIndex = data.column_map['message'];
+        if (messageIndex !== undefined) {
+            analyzeJsonField(data, messageIndex, 'binance_');
+        }
+    }
+    
+    function analyzeJsonField(data, fieldIndex, prefix) {
         const newJsonFields = new Set();
         data.rows.forEach(row => {
-            const extraData = row[extraDataIndex];
-            if (extraData) {
+            const jsonData = row[fieldIndex];
+            if (jsonData) {
                 try {
-                    const jsonData = JSON.parse(extraData);
-                    Object.keys(jsonData).forEach(key => newJsonFields.add(key));
-                } catch (e) {}
+                    const parsedData = JSON.parse(jsonData);
+                    Object.keys(parsedData).forEach(key => newJsonFields.add(key));
+                } catch (e) {
+                    // Не JSON - пропускаем
+                }
             }
         });
         
@@ -22,16 +35,16 @@ window.SignalsJSON = (function() {
         const columnsConfig = window.SignalsColumns.getConfig();
         
         newJsonFields.forEach(field => {
-            const jsonKey = `json_${field}`;
-            if (!columnsConfig[jsonKey]) {
-                columnsConfig[jsonKey] = {
-                    name: field,
+            const columnKey = `${prefix}${field}`;
+            if (!columnsConfig[columnKey]) {
+                columnsConfig[columnKey] = {
+                    name: getFieldDisplayName(field, prefix),
                     visible: false,
                     order: Object.keys(columnsConfig).length
                 };
-                jsonColumns.add(jsonKey);
+                jsonColumns.add(columnKey);
                 configUpdated = true;
-                console.log(`➕ Добавлена новая JSON колонка: ${field} (скрыта)`);
+                console.log(`➕ Добавлена ${prefix}колонка: ${field}`);
             }
         });
         
@@ -42,13 +55,31 @@ window.SignalsJSON = (function() {
         }
     }
     
-    function getJsonValue(row, jsonField, extraDataIndex) {
-        const extraData = row[extraDataIndex];
-        if (!extraData) return null;
+    function getFieldDisplayName(field, prefix) {
+        if (prefix === 'binance_') {
+            const binanceNames = {
+                'orderId': 'Order ID',
+                'executedQty': 'Executed Qty',
+                'avgPrice': 'Avg Price',
+                'status': 'Status',
+                'error': 'Error',
+                'error_message': 'Error Message',
+                'error_code': 'Error Code'
+            };
+            return binanceNames[field] || field;
+        } else if (prefix === 'webhook_') {
+            return field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        return field;
+    }
+    
+    function getJsonValue(row, jsonField, sourceIndex) {
+        const sourceData = row[sourceIndex];
+        if (!sourceData) return null;
         
         try {
-            const jsonData = JSON.parse(extraData);
-            const fieldName = jsonField.replace('json_', '');
+            const jsonData = JSON.parse(sourceData);
+            const fieldName = jsonField.replace(/^(webhook_|binance_)/, '');
             return jsonData[fieldName];
         } catch (e) {
             return null;
@@ -94,7 +125,6 @@ window.SignalsJSON = (function() {
         }
     }
     
-    // Публичный API модуля
     return {
         analyzeAndCreateJsonColumns,
         getJsonValue,

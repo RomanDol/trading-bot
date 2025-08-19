@@ -28,11 +28,10 @@
     <!-- Column Configuration -->
     <div class="settings-section">
         <h4>📊 Column Configuration</h4>
-        <button class="btn btn--secondary" id="reset-columns-btn">🔄 Reset to Default</button>
+        <button class="btn" id="reset-columns-btn">🔄 Reset to Default</button>
         <div class="columns-grid" id="columns-grid">
             <!-- Динамически заполняется через JavaScript -->
         </div>
-        <p class="text-muted mt-1">💡 Check columns to show, uncheck to hide. Numbers set display order.</p>
     </div>
     
     <!-- Pagination Settings -->
@@ -41,9 +40,8 @@
         <div class="pagination-settings">
             <label for="rows-per-page-input">Rows per page:</label>
             <input type="number" id="rows-per-page-input" min="1" max="10000" value="50" class="rows-input">
-            <button id="apply-rows-btn" class="btn btn-small">Apply</button>
+            <button id="apply-rows-btn" class="btn">Apply</button>
         </div>
-        <p class="text-muted mt-1">💡 Higher values load more data but may be slower.</p>
     </div>
 </div>
 

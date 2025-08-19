@@ -58,9 +58,12 @@ window.SignalsTable = (function() {
     }
     
     function getCellValue(row, columnKey, data) {
-        if (columnKey.startsWith('json_')) {
+        if (columnKey.startsWith('webhook_')) {
             const extraDataIndex = data.column_map['extra_data'];
             return window.SignalsJSON.getJsonValue(row, columnKey, extraDataIndex);
+        } else if (columnKey.startsWith('binance_')) {
+            const messageIndex = data.column_map['message'];
+            return window.SignalsJSON.getJsonValue(row, columnKey, messageIndex);
         } else {
             const columnIndex = data.column_map[columnKey];
             return columnIndex !== undefined ? row[columnIndex] : '';

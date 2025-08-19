@@ -7,6 +7,7 @@ import logging
 from typing import Tuple, Dict, Any
 from binance.um_futures import UMFutures
 from dotenv import load_dotenv
+import json
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -108,13 +109,20 @@ class BinanceClient:
             filled_qty = response.get('executedQty', adjusted_quantity)
             avg_price = response.get('avgPrice', 'N/A')
             
-            success_msg = f"Ордер #{order_id} исполнен: {filled_qty} @ {avg_price}"
-            return True, success_msg
+            return True, json.dumps(response, ensure_ascii=False)
             
         except Exception as e:
-            error_msg = f"Ошибка размещения ордера: {str(e)}"
-            logger.error(f"❌ {error_msg}")
-            return False, error_msg
+            logger.error(f"❌ Ошибка размещения ордера: {e}")
+            
+            error_data = {
+                "error": True,
+                "error_message": str(e),
+                "symbol": symbol,
+                "side": order_side,
+                "position_side": position_side
+            }
+            
+            return False, json.dumps(error_data, ensure_ascii=False)
     
     def close_position(self, symbol: str, side: str, quantity: float) -> Tuple[bool, str]:
         """
@@ -153,8 +161,7 @@ class BinanceClient:
             filled_qty = response.get('executedQty', adjusted_quantity)
             avg_price = response.get('avgPrice', 'N/A')
             
-            success_msg = f"Позиция закрыта #{order_id}: {filled_qty} @ {avg_price}"
-            return True, success_msg
+            return True, json.dumps(response, ensure_ascii=False)
             
         except Exception as e:
             error_msg = f"Ошибка закрытия позиции: {str(e)}"

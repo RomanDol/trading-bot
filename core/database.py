@@ -28,17 +28,11 @@ class DatabaseManager:
                     quantity REAL,
                     result TEXT,
                     message TEXT,
-                    code TEXT,
                     strategy TEXT,
                     extra_data TEXT
                 )
             ''')
             
-            # Добавляем колонку extra_data если её нет (для обратной совместимости)
-            try:
-                conn.execute('ALTER TABLE signals ADD COLUMN extra_data TEXT')
-            except sqlite3.OperationalError:
-                pass  # Колонка уже существует
     
     def log_signal(self, 
                    action: str, 
@@ -69,10 +63,10 @@ class DatabaseManager:
         with sqlite3.connect(self.db_file) as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO signals (timestamp, action, symbol, quantity, result, message, code, strategy, extra_data)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO signals (timestamp, action, symbol, quantity, result, message, strategy, extra_data)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
-                utc_timestamp, action, symbol, quantity, result, message, '', strategy, extra_json
+                utc_timestamp, action, symbol, quantity, result, message, strategy, extra_json
             ))
             
             signal_id = cursor.lastrowid
@@ -198,7 +192,7 @@ class DatabaseManager:
         try:
             if not os.path.exists(self.db_file):
                 print(f"⚠️ База данных {self.db_file} не найдена")
-                return ['id', 'timestamp', 'action', 'symbol', 'quantity', 'result', 'message', 'code', 'strategy', 'extra_data']
+                return ['id', 'timestamp', 'action', 'symbol', 'quantity', 'result', 'message', 'strategy', 'extra_data']
                 
             with sqlite3.connect(self.db_file) as conn:
                 cursor = conn.cursor()
@@ -210,7 +204,7 @@ class DatabaseManager:
             
         except Exception as e:
             print(f"❌ Ошибка получения колонок БД: {e}")
-            return ['id', 'timestamp', 'action', 'symbol', 'quantity', 'result', 'message', 'code', 'strategy', 'extra_data']
+            return ['id', 'timestamp', 'action', 'symbol', 'quantity', 'result', 'message', 'strategy', 'extra_data']
     
     def get_stats(self) -> Dict[str, Any]:
         """Получает статистику по сигналам"""
