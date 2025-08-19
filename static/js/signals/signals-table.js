@@ -69,6 +69,7 @@ window.SignalsTable = (function() {
     
     function formatCell(td, cellValue, columnKey) {
         if (columnKey === 'timestamp') {
+            // Используем DateUtils.format который теперь правильно обрабатывает UTC -> локальное время
             td.textContent = DateUtils.format(cellValue);
         } else if (columnKey === 'result') {
             td.textContent = cellValue === "success" ? "✅ success" : "❌ error";

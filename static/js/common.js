@@ -63,17 +63,31 @@ const API = {
  * Утилиты для работы с датой и временем
  */
 const DateUtils = {
-    // Форматирование даты
+    // Форматирование даты с учетом локального часового пояса браузера
     format: (dateString) => {
         try {
-            const localDate = new Date(dateString.replace(' ', 'T'));
-            const day = String(localDate.getDate()).padStart(2, '0');
-            const month = String(localDate.getMonth() + 1).padStart(2, '0');
-            const year = localDate.getFullYear();
-            const hours = String(localDate.getHours()).padStart(2, '0');
-            const minutes = String(localDate.getMinutes()).padStart(2, '0');
-            const seconds = String(localDate.getSeconds()).padStart(2, '0');
+            if (!dateString) return '';
+            
+            // Преобразуем в ISO формат и добавляем Z для UTC
+            const isoString = dateString.includes('T') ? dateString : dateString.replace(' ', 'T');
+            const utcString = isoString.endsWith('Z') ? isoString : isoString + 'Z';
+            
+            const date = new Date(utcString);
+            
+            if (isNaN(date.getTime())) {
+                return dateString;
+            }
+            
+            // Теперь date автоматически в локальном времени браузера
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
             return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+            
         } catch (e) {
             return dateString || '';
         }

@@ -102,3 +102,10 @@ if __name__ == '__main__':
     print(f"🌐 Адрес: http://localhost:8888")
     
     app.run(host='0.0.0.0', port=8888, debug=True)
+
+@app.context_processor
+def inject_globals():
+    """Внедряет глобальные переменные во все шаблоны"""
+    return {
+        'status': route_handlers.get_status()
+    }
