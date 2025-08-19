@@ -1,9 +1,17 @@
 // ===== JAVASCRIPT ДЛЯ CONTROL PANEL =====
 
 document.addEventListener('DOMContentLoaded', function() {
+    if (!window.TradingBotUI) {
+        console.error('TradingBotUI не загружен');
+        return;
+    }
+    
     const { DOM, Notifications } = window.TradingBotUI;
     
     const controlForm = DOM.get('control-form');
+    if (!controlForm) {
+        return;
+    }
     const buttons = controlForm.querySelectorAll('button[name="action"]');
     
     // Обработчик отправки формы

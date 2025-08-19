@@ -388,6 +388,10 @@
         flex-direction: column;
         align-items: center;
     }
+    .btn {
+        border-color: transparent  !important;
+        
+    }
     
 }
 

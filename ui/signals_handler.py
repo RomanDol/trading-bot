@@ -27,7 +27,7 @@ def get_signals_data(filters=None, limit=200, offset=0):
         raw_rows = db_manager.get_signals(filters, limit, offset)
         columns = db_manager.get_columns()
         
-        # Обрабатываем данные
+        # Обрабатываем данные БЕЗ разбивки message
         processed_rows = process_signal_rows(raw_rows, columns)
         
         # Создаем маппинг колонок
@@ -69,19 +69,15 @@ def get_signals_data(filters=None, limit=200, offset=0):
         }
 
 def process_signal_rows(raw_rows, db_columns):
-    """Обрабатывает сырые данные из БД"""
+    """
+    Обрабатывает сырые данные из БД
+    УБРАНА логика разбивки message - теперь показываем полное сообщение
+    """
     processed_rows = []
     
     for row in raw_rows:
+        # Просто конвертируем row в список без изменений
         processed_row = list(row)
-        
-        # Обработка message колонки - разбиваем на части
-        if 'message' in db_columns:
-            message_index = db_columns.index('message')
-            if processed_row[message_index]:
-                message_parts = str(processed_row[message_index]).split(',')
-                processed_row[message_index] = message_parts[0][:100] + ('...' if len(message_parts[0]) > 100 else '')
-        
         processed_rows.append(processed_row)
     
     return processed_rows

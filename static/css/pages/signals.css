@@ -195,7 +195,6 @@
 
 /* Колонка ID */
 .signals-table-container td[data-column="id"] {
-    width: 60px;
     text-align: center;
     font-family: var(--font-mono);
     font-size: var(--font-size-sm);
@@ -206,7 +205,6 @@
 .signals-table-container td[data-column="timestamp"] {
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    min-width: 140px;
     color: var(--text-secondary);
 }
 
@@ -249,22 +247,24 @@
 .signals-table-container td[data-column="strategy"] {
     font-size: var(--font-size-sm);
     color: var(--text-muted);
-    max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 /* Колонка message */
 .signals-table-container td[data-column="message"] {
-    max-width: 200px;
-    font-size: var(--font-size-xs);
+    max-width: 800px;
+    min-width: 800px;
+    white-space: normal;
+    font-size: 8.5px;
     line-height: var(--line-height-tight);
     color: var(--text-muted);
+    padding: 0 12px;
+
 }
 
 /* Колонка extra_data */
 .signals-table-container td[data-column="extra_data"] {
-    max-width: 200px;
     font-size: var(--font-size-xs);
     line-height: var(--line-height-tight);
 }
