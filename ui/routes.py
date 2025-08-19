@@ -2,6 +2,7 @@
 Маршруты Flask для веб-интерфейса управления ботом
 """
 import json
+import time
 from flask import request, jsonify
 import subprocess
 from .columns_config import load_columns_config, save_columns_config, reset_to_default
@@ -12,16 +13,31 @@ SERVICE_NAME = "trading-bot"
 class RouteHandlers:
     """Класс с обработчиками маршрутов"""
     
+    _status_cache = None
+    _status_cache_time = 0
+    _status_cache_duration = 5  # 5 секунд
+    
     @staticmethod
     def get_status():
-        """Получает статус systemd сервиса"""
-        try:
-            result = subprocess.run(["systemctl", "is-active", SERVICE_NAME], 
-                                  stdout=subprocess.PIPE, text=True, timeout=5)
-            return result.stdout.strip()
-        except Exception as e:
-            print(f"❌ Ошибка получения статуса сервиса: {e}")
-            return "unknown"
+        """Получает статус systemd сервиса с кэшированием"""
+        current_time = time.time()
+        
+        # Проверяем нужно ли обновить кэш
+        cache_expired = (current_time - RouteHandlers._status_cache_time) > RouteHandlers._status_cache_duration
+        
+        if RouteHandlers._status_cache is None or cache_expired:
+            try:
+                result = subprocess.run(["systemctl", "is-active", SERVICE_NAME], 
+                                      stdout=subprocess.PIPE, text=True, timeout=5)
+                RouteHandlers._status_cache = result.stdout.strip()
+                RouteHandlers._status_cache_time = current_time
+                print(f"🔄 Статус обновлен: {RouteHandlers._status_cache}")
+            except Exception as e:
+                print(f"❌ Ошибка получения статуса: {e}")
+                RouteHandlers._status_cache = "unknown"
+                RouteHandlers._status_cache_time = current_time
+        
+        return RouteHandlers._status_cache
 
     @staticmethod
     def get_logs():
@@ -41,6 +57,9 @@ class RouteHandlers:
         try:
             result = subprocess.run(["systemctl", action, SERVICE_NAME], 
                                   capture_output=True, text=True, timeout=10)
+            RouteHandlers._status_cache = None
+            RouteHandlers._status_cache_time = 0
+            print(f"🗑️ Кэш статуса очищен после выполнения '{action}'")
             
             if result.returncode == 0:
                 return True, f"Команда '{action}' выполнена успешно"
@@ -56,7 +75,6 @@ class RouteHandlers:
     def handle_dashboard():
         """Обработчик главной страницы"""
         return {
-            'status': RouteHandlers.get_status(),
             'stats': get_signals_stats()
         }
 
@@ -76,7 +94,6 @@ class RouteHandlers:
             message = f"Неизвестное действие: {action}"
         
         return {
-            'status': RouteHandlers.get_status(),
             'logs': logs,
             'message': message
         }

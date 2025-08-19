@@ -9,6 +9,15 @@ from ui.routes import route_handlers
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False  # Поддержка UTF-8 в JSON
 
+# ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВСЕХ ШАБЛОНОВ =====
+
+@app.context_processor
+def inject_globals():
+    """Внедряет глобальные переменные во все шаблоны"""
+    return {
+        'status': route_handlers.get_status()
+    }
+
 # ===== MIDDLEWARE =====
 
 @app.before_request
@@ -31,7 +40,6 @@ def control():
         data = route_handlers.handle_control_post()
     else:
         data = {
-            'status': route_handlers.handle_dashboard()['status'], 
             'logs': '', 
             'message': ''
         }
@@ -102,10 +110,3 @@ if __name__ == '__main__':
     print(f"🌐 Адрес: http://localhost:8888")
     
     app.run(host='0.0.0.0', port=8888, debug=True)
-
-@app.context_processor
-def inject_globals():
-    """Внедряет глобальные переменные во все шаблоны"""
-    return {
-        'status': route_handlers.get_status()
-    }
