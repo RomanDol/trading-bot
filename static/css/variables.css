@@ -39,7 +39,7 @@
   --spacing-xxl: 40px;
   
   /* Размеры компонентов */
-  --btn-padding: var(--spacing-sm) var(--spacing-md);
+  --btn-padding: var(--spacing-xs) var(--spacing-sm);
   --btn-padding-large: var(--spacing-md) var(--spacing-lg);
   --btn-padding-small: 6px var(--spacing-sm);
   --input-padding: var(--spacing-sm) 12px;

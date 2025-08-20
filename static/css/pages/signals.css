@@ -133,7 +133,7 @@
     justify-content: center;
     gap: var(--spacing-sm);
     align-items: center;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
     max-width: var(--container-max-width-lg);
     margin-left: auto;
     margin-right: auto;
@@ -144,11 +144,10 @@
     background: var(--input-bg);
     border: var(--border-width) solid var(--input-border);
     color: var(--text-secondary);
-    padding: var(--spacing-sm) 12px;
+    padding: 4px;
     border-radius: var(--border-radius-base);
-    font-size: var(--font-size-base);
-    min-width: 120px;
-    max-width: 160px;
+    font-size: var(--font-size-sm);
+    max-width: 110px;
 }
 
 .filter-form input:focus,
@@ -159,8 +158,20 @@
 }
 
 .filter-form input[type="date"] {
-    min-width: 140px;
+    max-width: 110px;
 }
+.filter-form input[name="strategy"] {
+    max-width: 160px;
+}
+
+@media (max-width: 768px) {
+    .filter-form input[name="strategy"],
+    .filter-form input,
+    .filter-form select {
+        max-width: 110px;
+    }
+}
+
 
 /* ===== SIGNALS TABLE ===== */
 
@@ -185,6 +196,7 @@
 }
 
 .signals-table-container th {
+    color: dimgrey;
     font-weight: var(--font-weight-bold);
     min-width: fit-content;
     background: var(--table-header-bg);
@@ -252,7 +264,8 @@
 }
 
 /* Колонка message */
-.signals-table-container td[data-column="message"] {
+.signals-table-container td[data-column="message"], 
+.signals-table-container td[data-column="binance_error_message"] {
     max-width: 800px;
     min-width: 800px;
     white-space: normal;
@@ -373,14 +386,11 @@
     display: flex;
     justify-content: center;
     gap: var(--spacing-xs);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
     flex-wrap: wrap;
 }
 
-.signals-controls .btn {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-}
+
 
 .signals-controls .refresh-btn.active {
     border-color: var(--color-primary);

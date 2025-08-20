@@ -191,6 +191,74 @@ class BinanceClient:
 # Создаем глобальный экземпляр для использования в приложении
 binance_client = BinanceClient()
 
+
+
+# ===== WEBSOCKET ИНТЕГРАЦИЯ =====
+from .websocket_monitor import SimpleBinanceWebSocket
+
+class BinanceClientWithWebSocket(BinanceClient):
+    """Binance клиент с WebSocket мониторингом"""
+    
+    def __init__(self):
+        super().__init__()
+        self.ws_monitor = None
+        self._start_websocket()
+    
+    def _start_websocket(self):
+        """Запускает WebSocket мониторинг"""
+        try:
+            self.ws_monitor = SimpleBinanceWebSocket(self.api_key, self.api_secret)
+            
+            # Добавляем коллбэки
+            self.ws_monitor.add_order_callback(self._on_order_update)
+            self.ws_monitor.add_position_callback(self._on_position_update)
+            
+            # Запускаем
+            self.ws_monitor.start()
+            
+            logger.info("🚀 WebSocket мониторинг запущен")
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка запуска WebSocket: {e}")
+            self.ws_monitor = None
+    
+    def _on_order_update(self, order_data):
+        """Коллбэк для обновлений ордеров"""
+        symbol = order_data.get('s')
+        status = order_data.get('X')
+        logger.info(f"📡 WebSocket: {symbol} ордер {status}")
+    
+    def _on_position_update(self, positions):
+        """Коллбэк для обновлений позиций"""
+        logger.debug(f"📊 WebSocket: {len(positions)} активных позиций")
+    
+    def get_realtime_positions(self):
+        """Получает позиции в реальном времени"""
+        if self.ws_monitor:
+            return self.ws_monitor.get_positions()
+        return {}
+    
+    def get_realtime_balances(self):
+        """Получает балансы в реальном времени"""
+        if self.ws_monitor:
+            return self.ws_monitor.get_balances()
+        return {}
+    
+    def get_websocket_stats(self):
+        """Получает статистику WebSocket"""
+        if self.ws_monitor:
+            return self.ws_monitor.get_stats()
+        return {"is_connected": False, "error": "WebSocket not initialized"}
+
+# Создаем новый клиент с WebSocket
+binance_client_ws = BinanceClientWithWebSocket()
+
+# Заменяем старый клиент (для обратной совместимости)
+binance_client = binance_client_ws
+
+
+
+
 if __name__ == "__main__":
     # Тестирование модуля
     print("🧪 Тестирование модуля binance_client...")

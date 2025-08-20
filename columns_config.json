@@ -55,7 +55,7 @@
   },
   "webhook_custom_param": {
     "name": "Custom Param",
-    "visible": true,
+    "visible": false,
     "order": 9
   },
   "webhook_custom_param-2": {
@@ -80,17 +80,167 @@
   },
   "binance_symbol": {
     "name": "symbol",
-    "visible": true,
+    "visible": false,
     "order": 14
   },
   "binance_side": {
     "name": "side",
-    "visible": true,
+    "visible": false,
     "order": 15
   },
   "binance_position_side": {
     "name": "position_side",
-    "visible": true,
+    "visible": false,
     "order": 16
+  },
+  "binance_orderId": {
+    "name": "Order ID",
+    "visible": true,
+    "order": 17
+  },
+  "binance_status": {
+    "name": "Status",
+    "visible": true,
+    "order": 18
+  },
+  "binance_clientOrderId": {
+    "name": "clientOrderId",
+    "visible": true,
+    "order": 19
+  },
+  "binance_price": {
+    "name": "price",
+    "visible": true,
+    "order": 20
+  },
+  "binance_avgPrice": {
+    "name": "Avg Price",
+    "visible": true,
+    "order": 21
+  },
+  "binance_origQty": {
+    "name": "origQty",
+    "visible": true,
+    "order": 22
+  },
+  "binance_executedQty": {
+    "name": "Executed Qty",
+    "visible": true,
+    "order": 23
+  },
+  "binance_cumQty": {
+    "name": "cumQty",
+    "visible": true,
+    "order": 24
+  },
+  "binance_cumQuote": {
+    "name": "cumQuote",
+    "visible": true,
+    "order": 25
+  },
+  "binance_timeInForce": {
+    "name": "timeInForce",
+    "visible": true,
+    "order": 26
+  },
+  "binance_type": {
+    "name": "type",
+    "visible": true,
+    "order": 27
+  },
+  "binance_reduceOnly": {
+    "name": "reduceOnly",
+    "visible": true,
+    "order": 28
+  },
+  "binance_closePosition": {
+    "name": "closePosition",
+    "visible": true,
+    "order": 29
+  },
+  "binance_positionSide": {
+    "name": "positionSide",
+    "visible": true,
+    "order": 30
+  },
+  "binance_stopPrice": {
+    "name": "stopPrice",
+    "visible": true,
+    "order": 31
+  },
+  "binance_workingType": {
+    "name": "workingType",
+    "visible": true,
+    "order": 32
+  },
+  "binance_priceProtect": {
+    "name": "priceProtect",
+    "visible": true,
+    "order": 33
+  },
+  "binance_origType": {
+    "name": "origType",
+    "visible": true,
+    "order": 34
+  },
+  "binance_priceMatch": {
+    "name": "priceMatch",
+    "visible": true,
+    "order": 35
+  },
+  "binance_selfTradePreventionMode": {
+    "name": "selfTradePreventionMode",
+    "visible": true,
+    "order": 36
+  },
+  "binance_goodTillDate": {
+    "name": "goodTillDate",
+    "visible": true,
+    "order": 37
+  },
+  "binance_updateTime": {
+    "name": "updateTime",
+    "visible": true,
+    "order": 38
+  },
+  "webhook_binance_order_id": {
+    "name": "Binance Order_id",
+    "visible": false,
+    "order": 39
+  },
+  "webhook_binance_status": {
+    "name": "Binance Status",
+    "visible": false,
+    "order": 40
+  },
+  "webhook_ws_status": {
+    "name": "Ws Status",
+    "visible": false,
+    "order": 41
+  },
+  "webhook_ws_executed_qty": {
+    "name": "Ws Executed_qty",
+    "visible": false,
+    "order": 42
+  },
+  "webhook_ws_avg_price": {
+    "name": "Ws Avg_price",
+    "visible": false,
+    "order": 43
+  },
+  "webhook_ws_last_update": {
+    "name": "Ws Last_update",
+    "visible": false,
+    "order": 44
+  },
+  "webhook_ws_commission": {
+    "name": "Ws Commission",
+    "visible": false,
+    "order": 45
+  },
+  "webhook_ws_realized_profit": {
+    "name": "Ws Realized_profit",
+    "visible": false,
+    "order": 46
   }
 }

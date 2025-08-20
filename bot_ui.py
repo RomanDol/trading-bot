@@ -110,3 +110,40 @@ if __name__ == '__main__':
     print(f"🌐 Адрес: http://localhost:8888")
     
     app.run(host='0.0.0.0', port=8888, debug=True)
+
+
+
+
+@app.route('/api/realtime_data')
+def realtime_data():
+    """API для получения данных в реальном времени"""
+    from core.binance_client import binance_client
+    
+    ws_stats = binance_client.get_websocket_stats()
+    positions = binance_client.get_realtime_positions()
+    balances = binance_client.get_realtime_balances()
+    
+    return jsonify({
+        'websocket_status': {
+            'connected': ws_stats.get('is_connected', False),
+            'messages_received': ws_stats.get('messages_received', 0),
+            'orders_tracked': ws_stats.get('orders_updated', 0),
+            'last_message_time': ws_stats.get('last_message_time')
+        },
+        'positions': positions,
+        'balances': balances,
+        'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/dashboard_realtime')
+def dashboard_realtime():
+    """Dashboard с real-time данными"""
+    data = route_handlers.handle_dashboard()
+    
+    # Добавляем WebSocket статус
+    from core.binance_client import binance_client
+    ws_stats = binance_client.get_websocket_stats()
+    data['websocket_status'] = ws_stats.get('is_connected', False)
+    data['realtime_positions'] = binance_client.get_realtime_positions()
+    
+    return render_template('dashboard.html', **data)

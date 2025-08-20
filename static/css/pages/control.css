@@ -246,21 +246,6 @@
     animation: control-spin 1s linear infinite;
 }
 
-/* ===== АДАПТИВНОСТЬ ===== */
 
-@media (max-width: 768px) {
-    /* .control-buttons form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--spacing-sm);
-    } */
-    
 
-    
-    /* .logs-content {
-        font-size: var(--font-size-xs);
-        padding: var(--spacing-md);
-    } */
-}
 

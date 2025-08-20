@@ -8,7 +8,7 @@
     top: 0;
     z-index: var(--z-nav);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
 }
 
 /* ===== DESKTOP НАВИГАЦИЯ ===== */
@@ -16,7 +16,7 @@
 .nav-desktop {
     display: flex;
     align-items: center;
-    margin: 3px auto var(--spacing-lg);
+    margin: 3px auto var(--spacing-sm);
     padding: 0 var(--spacing-sm);
 }
 
@@ -301,8 +301,8 @@
 }
 
 .pagination-btn {
-    min-width: 40px;
-    padding: var(--spacing-sm) 12px;
+    /* min-width: 40px; */
+    /* padding: var(--spacing-sm) 12px; */
     font-size: var(--font-size-base);
 }
 
@@ -317,20 +317,19 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    margin: 0 var(--spacing-sm);
+    /* margin: 0 var(--spacing-sm); */
     color: var(--text-secondary);
-    font-size: var(--font-size-base);
-    flex-direction: column;
+    font-size: var(--font-size-sm);
+    /* flex-direction: column; */
 }
 
 .page-input {
-    width: 60px;
-    text-align: center;
+    width: 40px;
+    text-align: end;
     background: none;
     border: none;
-    color: var(--text-primary);
     padding: 0;
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-xs);
 }
 
 .page-input:focus {
@@ -390,7 +389,9 @@
     }
     .btn {
         border-color: transparent  !important;
-        
+    }
+    .refresh-btn.active {
+        border-color: var(--color-primary) !important;
     }
     
 }

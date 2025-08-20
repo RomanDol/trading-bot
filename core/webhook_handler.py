@@ -97,7 +97,9 @@ class WebhookHandler:
         
         return signal_data
     
-    def execute_trading_action(self, signal_data: Dict[str, Any]) -> Tuple[bool, str]:
+
+
+    def execute_trading_action(self, signal_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
         """
         Выполняет торговое действие
         
@@ -105,7 +107,7 @@ class WebhookHandler:
             signal_data: Данные сигнала
             
         Returns:
-            Tuple[bool, str]: (успех, сообщение)
+            Tuple[bool, str, Dict]: (успех, сообщение, дополнительные данные)
         """
         action = signal_data['action']
         symbol = signal_data['symbol']
@@ -115,21 +117,38 @@ class WebhookHandler:
         
         try:
             if action == 'ENTER_LONG':
-                return binance_client.open_position(symbol, 'LONG', quantity)
+                success, message = binance_client.open_position(symbol, 'LONG', quantity)
             elif action == 'EXIT_LONG':
-                return binance_client.close_position(symbol, 'LONG', quantity)
+                success, message = binance_client.close_position(symbol, 'LONG', quantity)
             elif action == 'ENTER_SHORT':
-                return binance_client.open_position(symbol, 'SHORT', quantity)
+                success, message = binance_client.open_position(symbol, 'SHORT', quantity)
             elif action == 'EXIT_SHORT':
-                return binance_client.close_position(symbol, 'SHORT', quantity)
+                success, message = binance_client.close_position(symbol, 'SHORT', quantity)
             else:
-                return False, f"Неизвестное действие: {action}"
+                return False, f"Неизвестное действие: {action}", {}
+            
+            # Извлекаем order_id из ответа Binance
+            extra_data = {}
+            try:
+                import json
+                response_data = json.loads(message)
+                if 'orderId' in response_data:
+                    extra_data['binance_order_id'] = response_data['orderId']
+                    extra_data['binance_status'] = response_data.get('status', 'UNKNOWN')
+                    logger.info(f"📋 Сохранен order_id: {response_data['orderId']}")
+            except:
+                logger.warning("⚠️ Не удалось извлечь order_id из ответа")
+            
+            return success, message, extra_data
                 
         except Exception as e:
             error_msg = f"Ошибка выполнения {action}: {str(e)}"
             logger.error(f"❌ {error_msg}")
-            return False, error_msg
-    
+            return False, error_msg, {}
+
+
+
+
     def process_webhook(self) -> Tuple[Dict[str, Any], int]:
         """
         Основная функция обработки webhook
@@ -155,8 +174,12 @@ class WebhookHandler:
             signal_data = self.extract_signal_data(data)
             
             # Выполняем торговое действие
-            success, message = self.execute_trading_action(signal_data)
-            
+            success, message, binance_extra_data = self.execute_trading_action(signal_data)
+
+            # Объединяем дополнительные данные
+            extra_data = signal_data.get('extra_data', {})
+            extra_data.update(binance_extra_data)
+
             # Логируем в базу данных
             result_status = 'success' if success else 'error'
             signal_id = db_manager.log_signal(
@@ -166,7 +189,7 @@ class WebhookHandler:
                 result=result_status,
                 message=message,
                 strategy=signal_data['strategy'],
-                extra_data=signal_data.get('extra_data')
+                extra_data=extra_data
             )
             
             logger.info(f"📌 Сигнал #{signal_id} обработан: {result_status}")

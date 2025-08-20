@@ -20,7 +20,7 @@
 /* ===== КНОПКИ ===== */
 
 .btn {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     white-space: nowrap;
     display: inline-block;
     background: var(--bg-gradient-primary);
