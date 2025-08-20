@@ -242,5 +242,10 @@
     "name": "Ws Realized_profit",
     "visible": false,
     "order": 46
+  },
+  "webhook_ws_update_count": {
+    "name": "Ws Update_count",
+    "visible": false,
+    "order": 47
   }
 }

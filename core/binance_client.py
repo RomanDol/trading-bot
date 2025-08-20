@@ -8,6 +8,9 @@ from typing import Tuple, Dict, Any
 from binance.um_futures import UMFutures
 from dotenv import load_dotenv
 import json
+import threading
+
+from .websocket_monitor import SimpleBinanceWebSocket
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -193,8 +196,11 @@ binance_client = BinanceClient()
 
 
 
+
 # ===== WEBSOCKET ИНТЕГРАЦИЯ =====
 from .websocket_monitor import SimpleBinanceWebSocket
+import threading
+import atexit
 
 class BinanceClientWithWebSocket(BinanceClient):
     """Binance клиент с WebSocket мониторингом"""
@@ -202,62 +208,125 @@ class BinanceClientWithWebSocket(BinanceClient):
     def __init__(self):
         super().__init__()
         self.ws_monitor = None
-        self._start_websocket()
+        self._init_attempted = False
+        
+        # ИСПРАВЛЕНИЕ: Принудительная инициализация
+        self._ensure_websocket_initialized()
+    
+    def _ensure_websocket_initialized(self):
+        """Обеспечивает инициализацию WebSocket"""
+        if self._init_attempted:
+            return
+            
+        self._init_attempted = True
+        
+        try:
+            logger.info("🚀 Принудительная инициализация WebSocket...")
+            self._start_websocket()
+        except Exception as e:
+            logger.error(f"❌ Ошибка принудительной инициализации: {e}")
     
     def _start_websocket(self):
         """Запускает WebSocket мониторинг"""
         try:
+            logger.info("🔧 Создание WebSocket monitor...")
+            
             self.ws_monitor = SimpleBinanceWebSocket(self.api_key, self.api_secret)
             
             # Добавляем коллбэки
             self.ws_monitor.add_order_callback(self._on_order_update)
             self.ws_monitor.add_position_callback(self._on_position_update)
             
-            # Запускаем
+            # Запускаем в отдельном потоке
             self.ws_monitor.start()
             
-            logger.info("🚀 WebSocket мониторинг запущен")
+            # Регистрируем очистку при завершении
+            atexit.register(self._cleanup_websocket)
+            
+            logger.info("✅ WebSocket мониторинг запущен успешно")
             
         except Exception as e:
             logger.error(f"❌ Ошибка запуска WebSocket: {e}")
+            import traceback
+            logger.error(f"💥 Traceback: {traceback.format_exc()}")
             self.ws_monitor = None
+    
+    def _cleanup_websocket(self):
+        """Очистка WebSocket при завершении"""
+        if self.ws_monitor:
+            try:
+                self.ws_monitor.stop()
+                logger.info("🛑 WebSocket остановлен")
+            except:
+                pass
     
     def _on_order_update(self, order_data):
         """Коллбэк для обновлений ордеров"""
         symbol = order_data.get('s')
         status = order_data.get('X')
-        logger.info(f"📡 WebSocket: {symbol} ордер {status}")
+        order_id = order_data.get('i')
+        logger.info(f"📞 WebSocket коллбэк: ордер {order_id} {symbol} -> {status}")
     
     def _on_position_update(self, positions):
         """Коллбэк для обновлений позиций"""
-        logger.debug(f"📊 WebSocket: {len(positions)} активных позиций")
+        active_positions = len([p for p in positions.values() if p.get('amount', 0) != 0])
+        logger.debug(f"📊 WebSocket коллбэк: {active_positions} активных позиций")
     
     def get_realtime_positions(self):
         """Получает позиции в реальном времени"""
+        self._ensure_websocket_initialized()
         if self.ws_monitor:
             return self.ws_monitor.get_positions()
         return {}
     
     def get_realtime_balances(self):
         """Получает балансы в реальном времени"""
+        self._ensure_websocket_initialized()
         if self.ws_monitor:
             return self.ws_monitor.get_balances()
         return {}
     
     def get_websocket_stats(self):
         """Получает статистику WebSocket"""
+        self._ensure_websocket_initialized()
         if self.ws_monitor:
             return self.ws_monitor.get_stats()
         return {"is_connected": False, "error": "WebSocket not initialized"}
 
-# Создаем новый клиент с WebSocket
-binance_client_ws = BinanceClientWithWebSocket()
+# ИСПРАВЛЕНИЕ: Создание глобального экземпляра с обработкой ошибок
+def create_binance_client():
+    """Фабрика для создания Binance клиента"""
+    try:
+        logger.info("🏗️ Создание BinanceClientWithWebSocket...")
+        client = BinanceClientWithWebSocket()
+        logger.info("✅ BinanceClientWithWebSocket создан успешно")
+        return client
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка создания WebSocket клиента: {e}")
+        logger.warning("🔄 Fallback на обычный BinanceClient...")
+        
+        try:
+            client = BinanceClient()
+            logger.info("✅ Обычный BinanceClient создан как fallback")
+            return client
+        except Exception as e2:
+            logger.error(f"❌ Критическая ошибка создания клиента: {e2}")
+            raise
 
-# Заменяем старый клиент (для обратной совместимости)
-binance_client = binance_client_ws
+# Создаем глобальный экземпляр
+binance_client = create_binance_client()
 
+# ИСПРАВЛЕНИЕ: Принудительная инициализация при импорте
+def force_websocket_init():
+    """Принудительная инициализация WebSocket при импорте"""
+    if hasattr(binance_client, '_ensure_websocket_initialized'):
+        binance_client._ensure_websocket_initialized()
 
+# Вызываем принудительную инициализацию
+force_websocket_init()
 
+logger.info(f"🎯 Binance клиент готов: {type(binance_client).__name__}")
 
 if __name__ == "__main__":
     # Тестирование модуля
