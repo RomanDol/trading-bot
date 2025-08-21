@@ -215,7 +215,7 @@
   },
   "webhook_ws_status": {
     "name": "Ws Status",
-    "visible": false,
+    "visible": true,
     "order": 41
   },
   "webhook_ws_executed_qty": {
@@ -247,5 +247,20 @@
     "name": "Ws Update_count",
     "visible": false,
     "order": 47
+  },
+  "webhook_ws_order_time": {
+    "name": "Ws Order_time",
+    "visible": false,
+    "order": 48
+  },
+  "webhook_test": {
+    "name": "Test",
+    "visible": false,
+    "order": 49
+  },
+  "webhook_timestamp": {
+    "name": "Timestamp",
+    "visible": false,
+    "order": 50
   }
 }
