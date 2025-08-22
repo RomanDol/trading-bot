@@ -103,6 +103,54 @@ def internal_error(error):
                          error_code=500, 
                          error_message="Внутренняя ошибка сервера"), 500
 
+                
+
+
+
+
+
+
+
+
+# ===== ДОБАВИТЬ В bot_ui.py ПОСЛЕ СУЩЕСТВУЮЩИХ МАРШРУТОВ =====
+
+@app.route('/sockets', endpoint='sockets')
+def sockets():
+    """Страница истории сокетов"""
+    data = route_handlers.handle_sockets()
+    return render_template('sockets.html', **data)
+
+# ===== API МАРШРУТЫ ДЛЯ СОКЕТОВ =====
+
+@app.route('/sockets/data')
+def sockets_data():
+    """API: Получение данных сокетов (AJAX)"""
+    return route_handlers.handle_sockets_data()
+
+@app.route('/sockets/save_columns_config', methods=['POST'])
+def save_sockets_columns_config():
+    """API: Сохранение конфигурации колонок сокетов"""
+    return route_handlers.handle_save_sockets_columns_config()
+
+@app.route('/sockets/reset_columns', methods=['POST'])
+def reset_sockets_columns():
+    """API: Сброс конфигурации колонок сокетов"""
+    return route_handlers.handle_reset_sockets_columns()
+
+@app.route('/sockets/export_excel')
+def export_sockets_excel():
+    """API: Экспорт данных сокетов в Excel"""
+    return route_handlers.handle_export_sockets_excel()
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot UI...")
     print(f"👤 Пользователь: {auth_manager.username}")

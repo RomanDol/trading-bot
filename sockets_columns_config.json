@@ -1,0 +1,69 @@
+{
+  "id": {
+    "name": "#",
+    "visible": true,
+    "order": 0,
+    "width": "60px"
+  },
+  "timestamp": {
+    "name": "timestamp",
+    "visible": true,
+    "order": 1,
+    "width": "140px"
+  },
+  "event_type": {
+    "name": "event_type",
+    "visible": true,
+    "order": 2,
+    "width": "150px"
+  },
+  "symbol": {
+    "name": "symbol",
+    "visible": true,
+    "order": 3,
+    "width": "100px"
+  },
+  "order_id": {
+    "name": "order_id",
+    "visible": true,
+    "order": 4,
+    "width": "120px"
+  },
+  "status": {
+    "name": "status",
+    "visible": true,
+    "order": 5,
+    "width": "100px"
+  },
+  "raw_message": {
+    "name": "raw_message",
+    "visible": false,
+    "order": 6,
+    "width": "800px"
+  },
+  "socket_e": {
+    "name": "e",
+    "visible": false,
+    "order": 7
+  },
+  "socket_E": {
+    "name": "E",
+    "visible": true,
+    "order": 8
+  },
+  "socket_T": {
+    "name": "T",
+    "visible": false,
+    "order": 9
+  },
+  "socket_a": {
+    "name": "a",
+    "visible": false,
+    "order": 10
+  },
+  "socket_o": {
+    "name": "o",
+    "visible": false,
+    "order": 11
+  }
+}

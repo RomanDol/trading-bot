@@ -363,6 +363,267 @@ class RouteHandlers:
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
+
+
+
+
+
+
+
+
+
+    # ===== ДОБАВИТЬ В КЛАСС RouteHandlers в ui/routes.py =====
+
+    @staticmethod
+    def handle_sockets():
+        """Обработчик страницы сокетов"""
+        # Получаем параметры фильтрации из URL
+        filters = {
+            'from_date': request.args.get('from_date', ''),
+            'to_date': request.args.get('to_date', ''),
+            'event_type': request.args.get('event_type', ''),
+            'symbol': request.args.get('symbol', ''),
+            'order_id': request.args.get('order_id', ''),
+            'status': request.args.get('status', '')
+        }
+        
+        # Загружаем конфигурацию колонок для сокетов
+        from ui.sockets_columns_config import load_sockets_columns_config
+        columns_config = load_sockets_columns_config()
+        
+        # Получаем опции для фильтров
+        from ui.sockets_handler import get_sockets_filter_options
+        filter_options = get_sockets_filter_options()
+        
+        return {
+            'columns_config': columns_config,
+            'filters': filters,
+            'filter_options': filter_options
+        }
+
+    @staticmethod
+    def handle_sockets_data():
+        """API endpoint для получения данных сокетов с пагинацией"""
+        try:
+            # Получаем параметры фильтрации
+            filters = {
+                'from_date': request.args.get('from_date'),
+                'to_date': request.args.get('to_date'),
+                'event_type': request.args.get('event_type'),
+                'symbol': request.args.get('symbol'),
+                'order_id': request.args.get('order_id'),
+                'status': request.args.get('status')
+            }
+            
+            # Убираем пустые фильтры
+            filters = {k: v for k, v in filters.items() if v}
+            
+            # Получаем параметры пагинации
+            try:
+                limit = int(request.args.get('limit', 50))
+                page = int(request.args.get('page', 1))
+                
+                # Валидируем параметры
+                limit = max(10, min(limit, 1000))
+                page = max(1, page)
+                
+                offset = (page - 1) * limit
+                
+            except (ValueError, TypeError):
+                limit = 50
+                page = 1
+                offset = 0
+            
+            # Получаем данные с пагинацией
+            from ui.sockets_handler import get_sockets_data
+            data = get_sockets_data(filters, limit, offset)
+            
+            return jsonify(data)
+            
+        except Exception as e:
+            return jsonify({
+                'error': str(e),
+                'rows': [],
+                'columns': [],
+                'column_map': {},
+                'total_found': 0,
+                'total_count': 0,
+                'current_page': 1,
+                'total_pages': 1,
+                'has_next': False,
+                'has_prev': False,
+                'limit': 50,
+                'offset': 0
+            }), 500
+
+    @staticmethod
+    def handle_save_sockets_columns_config():
+        """API endpoint для сохранения конфигурации колонок сокетов"""
+        try:
+            config = request.get_json()
+            
+            if not config:
+                return jsonify({'status': 'error', 'message': 'Отсутствуют данные'}), 400
+            
+            # Валидируем структуру конфигурации
+            for key, col_config in config.items():
+                required_fields = ['name', 'visible', 'order']
+                if not all(field in col_config for field in required_fields):
+                    return jsonify({
+                        'status': 'error', 
+                        'message': f'Неверная структура конфигурации для колонки сокета {key}'
+                    }), 400
+            
+            from ui.sockets_columns_config import save_sockets_columns_config
+            if save_sockets_columns_config(config):
+                return jsonify({'status': 'success', 'message': 'Конфигурация сокетов сохранена'})
+            else:
+                return jsonify({'status': 'error', 'message': 'Ошибка сохранения сокетов'}), 500
+                
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+
+    @staticmethod
+    def handle_reset_sockets_columns():
+        """API endpoint для сброса конфигурации колонок сокетов"""
+        try:
+            from ui.sockets_columns_config import reset_sockets_to_default
+            config = reset_sockets_to_default()
+            return jsonify({
+                'status': 'success', 
+                'message': 'Конфигурация сокетов сброшена',
+                'config': config
+            })
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+
+    @staticmethod
+    def handle_export_sockets_excel():
+        """API endpoint для экспорта данных сокетов в Excel"""
+        try:
+            from flask import make_response
+            import io
+            import xlsxwriter
+            from datetime import datetime
+            
+            # Получаем параметры фильтрации (те же что и для обычного запроса)
+            filters = {
+                'from_date': request.args.get('from_date'),
+                'to_date': request.args.get('to_date'),
+                'event_type': request.args.get('event_type'),
+                'symbol': request.args.get('symbol'),
+                'order_id': request.args.get('order_id'),
+                'status': request.args.get('status')
+            }
+            
+            # Убираем пустые фильтры
+            filters = {k: v for k, v in filters.items() if v}
+            
+            # Получаем ВСЕ данные (без лимита для экспорта)
+            from ui.sockets_handler import get_sockets_data
+            data = get_sockets_data(filters, limit=10000, offset=0)
+            
+            # Получаем конфигурацию колонок
+            from ui.sockets_columns_config import load_sockets_columns_config, get_visible_sockets_columns
+            columns_config = load_sockets_columns_config()
+            
+            # Создаем Excel файл в памяти
+            output = io.BytesIO()
+            workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+            worksheet = workbook.add_worksheet('Socket Messages')
+            
+            # Стили для Excel
+            header_format = workbook.add_format({
+                'bold': True,
+                'bg_color': '#333333',
+                'font_color': 'white',
+                'border': 1
+            })
+            
+            cell_format = workbook.add_format({
+                'border': 1,
+                'align': 'left'
+            })
+            
+            # Получаем видимые колонки в правильном порядке
+            visible_columns = get_visible_sockets_columns(columns_config)
+            
+            # Записываем заголовки
+            col_num = 0
+            for key, config in visible_columns:
+                worksheet.write(0, col_num, config['name'], header_format)
+                col_num += 1
+            
+            # Записываем данные
+            row_num = 1
+            for row_data in data['rows']:
+                col_num = 0
+                for key, config in visible_columns:
+                    # Получаем значение для этой колонки
+                    if key in data['column_map']:
+                        cell_value = row_data[data['column_map'][key]]
+                    elif key.startswith('socket_'):
+                        # Обработка JSON колонок
+                        raw_message_index = data['column_map'].get('raw_message')
+                        if raw_message_index is not None:
+                            raw_message = row_data[raw_message_index]
+                            if raw_message:
+                                try:
+                                    import json
+                                    json_data = json.loads(raw_message)
+                                    field_name = key.replace('socket_', '')
+                                    cell_value = json_data.get(field_name, '')
+                                except:
+                                    cell_value = ''
+                            else:
+                                cell_value = ''
+                        else:
+                            cell_value = ''
+                    else:
+                        cell_value = ''
+                    
+                    worksheet.write(row_num, col_num, str(cell_value) if cell_value else '', cell_format)
+                    col_num += 1
+                row_num += 1
+            
+            # Автоширина колонок
+            for i, (key, config) in enumerate(visible_columns):
+                worksheet.set_column(i, i, 15)
+            
+            workbook.close()
+            output.seek(0)
+            
+            # Создаем имя файла с текущей датой и фильтрами
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filter_str = '_'.join([f"{k}-{v}" for k, v in filters.items()]) if filters else 'all'
+            filename = f"socket_messages_{timestamp}_{filter_str}.xlsx"
+            
+            # Создаем ответ с файлом
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            print(f"📊 Экспорт сокетов в Excel: {row_num-1} строк, {len(visible_columns)} колонок")
+            
+            return response
+            
+        except Exception as e:
+            print(f"❌ Ошибка экспорта сокетов в Excel: {e}")
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Создаем экземпляр для использования
 route_handlers = RouteHandlers()
 
