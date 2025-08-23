@@ -16,6 +16,7 @@ import queue
 from datetime import timedelta
 
 from .database import db_manager
+from .sockets_database import sockets_db_manager
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,8 @@ class SimpleBinanceWebSocket:
             'last_message_time': None,
             'reconnect_count': 0,
             'orders_queued': 0,        # ДОБАВЛЕНО
-            'orders_processed': 0      # ДОБАВЛЕНО
+            'orders_processed': 0,      # ДОБАВЛЕНО
+            'messages_saved_to_db': 0   # ДОБАВЛЕНО: счетчик сохраненных сообщений
         }
 
     def start(self):
@@ -172,9 +174,13 @@ class SimpleBinanceWebSocket:
             
             event_type = data.get('e', 'UNKNOWN')
             
+            # Сохраняем сообщение в базу сокетов
+            self._save_socket_message_to_db(data, message)
+
             # ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ ВСЕХ ТИПОВ СООБЩЕНИЙ
             logger.info(f"📡 WebSocket получил: {event_type}")
             logger.info(f"📄 RAW сообщение: {message}")
+
             
             if event_type == 'ORDER_TRADE_UPDATE':
                 order_data = data.get('o', {})
@@ -624,3 +630,45 @@ class SimpleBinanceWebSocket:
                 logger.error(f"❌ КРИТИЧЕСКАЯ ОШИБКА в обработчике очереди: {e}")
                 import traceback
                 logger.error(f"💥 Traceback: {traceback.format_exc()}")
+
+
+    def _save_socket_message_to_db(self, data, raw_message):
+        """Сохраняет WebSocket сообщение в базу данных сокетов"""
+        try:
+            event_type = data.get('e', 'UNKNOWN')
+            symbol = None
+            order_id = None
+            status = None
+            
+            # Извлекаем данные в зависимости от типа события
+            if event_type == 'ORDER_TRADE_UPDATE':
+                order_data = data.get('o', {})
+                symbol = order_data.get('s')
+                order_id = str(order_data.get('i')) if order_data.get('i') else None
+                status = order_data.get('X')
+                
+            elif event_type == 'ACCOUNT_UPDATE':
+                # Для ACCOUNT_UPDATE берем первый символ из позиций
+                account_data = data.get('a', {})
+                positions = account_data.get('P', [])
+                if positions:
+                    symbol = positions[0].get('s')
+            
+            # Сохраняем в базу сокетов
+            socket_id = sockets_db_manager.log_socket_message(
+                event_type=event_type,
+                symbol=symbol,
+                order_id=order_id,
+                status=status,
+                raw_message=raw_message
+            )
+            
+            # Увеличиваем счетчик сохраненных сообщений
+            self.stats['messages_saved_to_db'] += 1
+            
+            logger.debug(f"💾 Сокет сообщение сохранено в БД: ID #{socket_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка сохранения сокет сообщения в БД: {e}")
+            import traceback
+            logger.error(f"💥 Traceback: {traceback.format_exc()}")
