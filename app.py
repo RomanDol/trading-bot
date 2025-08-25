@@ -88,3 +88,29 @@ if __name__ == '__main__':
     print("🔧 WebSocket статистика: http://localhost:5000/websocket_stats")
     
     app.run(host='0.0.0.0', port=5000, debug=False)
+# ИСПРАВЛЕНИЕ: Принудительная инициализация WebSocket
+print("🔧 Добавление принудительной инициализации WebSocket...")
+try:
+    from core.binance_client import binance_client
+    if hasattr(binance_client, '_ensure_websocket_initialized'):
+        import threading
+        import time
+        
+        def delayed_init():
+            time.sleep(5)  # Ждем полной загрузки приложения
+            print("🚀 Запуск отложенной инициализации WebSocket...")
+            success = binance_client._ensure_websocket_initialized()
+            if success:
+                print("✅ WebSocket инициализирован успешно!")
+            else:
+                print("❌ Не удалось инициализировать WebSocket")
+        
+        # Запускаем в отдельном потоке
+        threading.Thread(target=delayed_init, daemon=True).start()
+        print("🔧 Запущена отложенная инициализация WebSocket (через 5 сек)")
+    else:
+        print("⚠️ Метод _ensure_websocket_initialized не найден")
+except Exception as e:
+    print(f"⚠️ Ошибка инициализации WebSocket: {e}")
+    import traceback
+    traceback.print_exc()

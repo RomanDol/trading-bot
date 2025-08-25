@@ -6,7 +6,7 @@ echo "🚀 Starting trading-bot Flask app with Gunicorn ..."
 source /home/trader/trading-bot/venv/bin/activate
 
 # Запускаем Gunicorn с логами
-/home/trader/trading-bot/venv/bin/gunicorn --workers 2 --bind 0.0.0.0:5000 app:app \
+/home/trader/trading-bot/venv/bin/gunicorn --workers 1 --bind 0.0.0.0:5000 app:app \
   --reload \
   --log-level info \
   --access-logfile /home/trader/trading-bot/logs/access.log \
