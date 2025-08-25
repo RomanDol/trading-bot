@@ -140,6 +140,19 @@ class WebhookHandler:
                 logger.warning("⚠️ Не удалось извлечь order_id из ответа")
             
             return success, message, extra_data
+
+
+
+
+            # Записываем ответ от Binance API в общую базу
+            try:
+                binance_response = json.loads(message) if isinstance(message, str) else message
+                binance_response['e'] = 'BINANCE_API'
+                messages_db_manager.log_message('BINANCE_API', binance_response)
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось записать ответ Binance API: {e}")
+
+
                 
         except Exception as e:
             error_msg = f"Ошибка выполнения {action}: {str(e)}"
@@ -163,6 +176,21 @@ class WebhookHandler:
             # Получаем данные запроса
             data = request.get_json()
             logger.info(f"🔔 Webhook получен: {data}")
+
+
+
+
+            # Записываем сообщение от стратегии в общую базу
+            from .messages_database import messages_db_manager
+            try:
+                strategy_message = data.copy()
+                strategy_message['e'] = 'STRATEGY_SIGNAL'
+                messages_db_manager.log_message('STRATEGY_SIGNAL', strategy_message)
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось записать сообщение стратегии: {e}")
+
+
+
             
             # Валидируем запрос
             is_valid, error_message = self.validate_request(data)

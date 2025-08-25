@@ -1,0 +1,116 @@
+{
+  "id": {
+    "name": "#",
+    "order": 0,
+    "visible": true,
+    "width": "60px"
+  },
+  "message": {
+    "name": "Message",
+    "order": 3,
+    "visible": true,
+    "width": "800px"
+  },
+  "time": {
+    "name": "Time",
+    "order": 1,
+    "visible": true,
+    "width": "140px"
+  },
+  "type": {
+    "name": "Type",
+    "order": 2,
+    "visible": true,
+    "width": "150px"
+  },
+  "json_e": {
+    "name": "Event Type",
+    "visible": true,
+    "order": 4
+  },
+  "json_side": {
+    "name": "Side",
+    "visible": true,
+    "order": 5
+  },
+  "json_type": {
+    "name": "Type",
+    "visible": true,
+    "order": 6
+  },
+  "json_status": {
+    "name": "Status",
+    "visible": true,
+    "order": 7
+  },
+  "json_symbol": {
+    "name": "Symbol",
+    "visible": true,
+    "order": 8
+  },
+  "json_orderId": {
+    "name": "Order ID",
+    "visible": true,
+    "order": 9
+  },
+  "json_origQty": {
+    "name": "Original Qty",
+    "visible": false,
+    "order": 10
+  },
+  "json_avgPrice": {
+    "name": "Avg Price",
+    "visible": true,
+    "order": 11
+  },
+  "json_updateTime": {
+    "name": "Update Time",
+    "visible": false,
+    "order": 12
+  },
+  "json_executedQty": {
+    "name": "Executed Qty",
+    "visible": true,
+    "order": 13
+  },
+  "json_action": {
+    "name": "Action",
+    "visible": true,
+    "order": 14
+  },
+  "json_auth_key": {
+    "name": "Auth Key",
+    "visible": false,
+    "order": 15
+  },
+  "json_quantity": {
+    "name": "Quantity",
+    "visible": true,
+    "order": 16
+  },
+  "json_strategy": {
+    "name": "Strategy",
+    "visible": true,
+    "order": 17
+  },
+  "json_timestamp": {
+    "name": "Timestamp",
+    "visible": false,
+    "order": 18
+  },
+  "json_custom_param": {
+    "name": "Custom Param",
+    "visible": false,
+    "order": 19
+  },
+  "json_custom_param-2": {
+    "name": "Custom Param-2",
+    "visible": false,
+    "order": 20
+  },
+  "json_custom_param-3": {
+    "name": "Custom Param-3",
+    "visible": false,
+    "order": 21
+  }
+}

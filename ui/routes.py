@@ -7,6 +7,7 @@ from flask import request, jsonify
 import subprocess
 from .columns_config import load_columns_config, save_columns_config, reset_to_default
 from .signals_handler import get_signals_data, get_filter_options, get_signals_stats
+from .routes_messages import messages_route_handlers
 
 SERVICE_NAME = "trading-bot"
 
@@ -614,6 +615,43 @@ class RouteHandlers:
 
 
 
+
+
+
+
+
+
+# ===== MESSAGES ROUTES =====
+    
+    @staticmethod
+    def handle_messages():
+        """Обработчик страницы сообщений"""
+        return messages_route_handlers.handle_messages()
+    
+    @staticmethod
+    def handle_messages_data():
+        """API endpoint для получения данных сообщений с пагинацией"""
+        return messages_route_handlers.handle_messages_data()
+    
+    @staticmethod
+    def handle_save_messages_columns_config():
+        """API endpoint для сохранения конфигурации колонок сообщений"""
+        return messages_route_handlers.handle_save_messages_columns_config()
+    
+    @staticmethod
+    def handle_reset_messages_columns():
+        """API endpoint для сброса конфигурации колонок сообщений"""
+        return messages_route_handlers.handle_reset_messages_columns()
+    
+    @staticmethod
+    def handle_export_messages_excel():
+        """API endpoint для экспорта данных сообщений в Excel"""
+        return messages_route_handlers.handle_export_messages_excel()
+    
+    @staticmethod
+    def handle_get_messages_columns_config():
+        """API endpoint для получения текущей конфигурации колонок сообщений"""
+        return messages_route_handlers.handle_get_messages_columns_config()
 
 
 

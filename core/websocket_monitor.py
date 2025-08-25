@@ -598,6 +598,16 @@ class SimpleBinanceWebSocket:
         except Exception as e:
             logger.error(f"❌ Ошибка сохранения сокет сообщения: {e}")
 
+
+        # Также записываем в общую базу сообщений
+        try:
+            messages_db_manager.log_message(event_type, json.loads(raw_message))
+        except Exception as e:
+            logger.warning(f"⚠️ Не удалось записать WebSocket сообщение в общую базу: {e}")
+
+
+
+
     def add_order_callback(self, callback):
         """Добавляет коллбэк для ордеров (ПРЕДОТВРАЩЕНИЕ ДУБЛИРОВАНИЯ)"""
         if callback not in self.order_callbacks:

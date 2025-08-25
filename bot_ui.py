@@ -147,6 +147,43 @@ def export_sockets_excel():
 
 
 
+# ===== MESSAGES ROUTES =====
+
+@app.route('/messages', endpoint='messages')
+def messages():
+    """Страница истории сообщений"""
+    data = route_handlers.handle_messages()
+    return render_template('messages.html', **data)
+
+# ===== API МАРШРУТЫ ДЛЯ СООБЩЕНИЙ =====
+
+@app.route('/messages/data')
+def messages_data():
+    """API: Получение данных сообщений (AJAX)"""
+    return route_handlers.handle_messages_data()
+
+@app.route('/messages/save_columns_config', methods=['POST'])
+def save_messages_columns_config():
+    """API: Сохранение конфигурации колонок сообщений"""
+    return route_handlers.handle_save_messages_columns_config()
+
+@app.route('/messages/reset_columns', methods=['POST'])
+def reset_messages_columns():
+    """API: Сброс конфигурации колонок сообщений"""
+    return route_handlers.handle_reset_messages_columns()
+
+@app.route('/messages/export_excel')
+def export_messages_excel():
+    """API: Экспорт данных сообщений в Excel"""
+    return route_handlers.handle_export_messages_excel()
+
+@app.route('/messages/get_columns_config')
+def get_messages_columns_config():
+    """API: Получение конфигурации колонок сообщений"""
+    return route_handlers.handle_get_messages_columns_config()
+
+
+
 
 
 
