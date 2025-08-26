@@ -23,94 +23,69 @@
     "visible": true,
     "width": "150px"
   },
-  "json_e": {
-    "name": "Event Type",
-    "visible": true,
+  "json_E": {
+    "name": "Event Time",
+    "visible": false,
     "order": 4
   },
-  "json_side": {
-    "name": "Side",
-    "visible": true,
+  "json_T": {
+    "name": "Transaction Time",
+    "visible": false,
     "order": 5
   },
-  "json_type": {
-    "name": "Type",
-    "visible": true,
+  "json_e": {
+    "name": "Event Type",
+    "visible": false,
     "order": 6
   },
-  "json_status": {
-    "name": "Status",
-    "visible": true,
+  "json_L": {
+    "name": "Last Executed Price",
+    "visible": false,
     "order": 7
   },
-  "json_symbol": {
-    "name": "Symbol",
-    "visible": true,
+  "json_S": {
+    "name": "Side",
+    "visible": false,
     "order": 8
   },
-  "json_orderId": {
-    "name": "Order ID",
-    "visible": true,
+  "json_c": {
+    "name": "Client Order ID",
+    "visible": false,
     "order": 9
   },
-  "json_origQty": {
-    "name": "Original Qty",
+  "json_i": {
+    "name": "Order ID",
     "visible": false,
     "order": 10
   },
-  "json_avgPrice": {
-    "name": "Avg Price",
-    "visible": true,
+  "json_l": {
+    "name": "Last Executed Qty",
+    "visible": false,
     "order": 11
   },
-  "json_updateTime": {
-    "name": "Update Time",
+  "json_m": {
+    "name": "M",
     "visible": false,
     "order": 12
   },
-  "json_executedQty": {
-    "name": "Executed Qty",
-    "visible": true,
+  "json_p": {
+    "name": "Price",
+    "visible": false,
     "order": 13
   },
-  "json_action": {
-    "name": "Action",
-    "visible": true,
+  "json_q": {
+    "name": "Quantity",
+    "visible": false,
     "order": 14
   },
-  "json_auth_key": {
-    "name": "Auth Key",
+  "json_s": {
+    "name": "Symbol",
     "visible": false,
     "order": 15
   },
-  "json_quantity": {
-    "name": "Quantity",
-    "visible": true,
+  "json_t": {
+    "name": "T",
+    "visible": false,
     "order": 16
-  },
-  "json_strategy": {
-    "name": "Strategy",
-    "visible": true,
-    "order": 17
-  },
-  "json_timestamp": {
-    "name": "Timestamp",
-    "visible": false,
-    "order": 18
-  },
-  "json_custom_param": {
-    "name": "Custom Param",
-    "visible": false,
-    "order": 19
-  },
-  "json_custom_param-2": {
-    "name": "Custom Param-2",
-    "visible": false,
-    "order": 20
-  },
-  "json_custom_param-3": {
-    "name": "Custom Param-3",
-    "visible": false,
-    "order": 21
   }
 }

@@ -99,7 +99,7 @@ window.MessagesJSON = (function() {
     function isFieldVisibleByDefault(field) {
         // Поля которые показываем по умолчанию
         const visibleFields = [
-            'e', 'action', 'symbol', 'quantity', 'status', 'side', 'type', 
+            'action', 'symbol', 'quantity', 'status', 'side', 'type', 
             'orderId', 'executedQty', 'avgPrice', 'strategy'
         ];
         

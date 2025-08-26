@@ -63,37 +63,34 @@ const API = {
  * Утилиты для работы с датой и временем
  */
 const DateUtils = {
-    // Форматирование даты с учетом локального часового пояса браузера
     format: (dateString) => {
         try {
             if (!dateString) return '';
             
-            // Преобразуем в ISO формат и добавляем Z для UTC
-            const isoString = dateString.includes('T') ? dateString : dateString.replace(' ', 'T');
-            const utcString = isoString.endsWith('Z') ? isoString : isoString + 'Z';
-            
-            const date = new Date(utcString);
+            // Создаем Date объект напрямую - он умеет парсить разные форматы
+            const date = new Date(dateString);
             
             if (isNaN(date.getTime())) {
                 return dateString;
             }
             
-            // Теперь date автоматически в локальном времени браузера
+            // Форматируем с миллисекундами в локальном времени браузера
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const year = date.getFullYear();
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             const seconds = String(date.getSeconds()).padStart(2, '0');
+            const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
             
-            return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+            return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}.${milliseconds}`;
             
         } catch (e) {
+            console.error('DateUtils.format error:', e, 'input:', dateString);
             return dateString || '';
         }
     },
     
-    // Текущая дата в формате YYYY-MM-DD
     today: () => {
         const today = new Date();
         return today.toISOString().split('T')[0];

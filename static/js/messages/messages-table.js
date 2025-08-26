@@ -72,11 +72,12 @@ window.MessagesTable = (function() {
         }
     }
     
-    function formatCell(td, cellValue, columnKey) {
+   function formatCell(td, cellValue, columnKey) {
+      
+       
         if (columnKey === 'time') {
             // Форматируем время - PostgreSQL возвращает ISO строку
-            td.textContent = DateUtils.format(cellValue);
-            
+           td.textContent = DateUtils.format(cellValue);
         } else if (columnKey === 'type') {
             // Форматируем тип сообщения с цветовой индикацией
             td.textContent = cellValue || '';
@@ -99,7 +100,9 @@ window.MessagesTable = (function() {
             // Обычные поля
             td.textContent = cellValue || '';
         }
-    }
+   }
+   
+
     
     function getTypeClass(messageType) {
         /**
@@ -109,48 +112,74 @@ window.MessagesTable = (function() {
             return 'type-strategy';
         } else if (messageType.includes('BINANCE')) {
             return 'type-binance';
-        } else if (messageType.includes('ORDER_TRADE_UPDATE') || messageType.includes('ACCOUNT_UPDATE')) {
-            return 'type-websocket';
+        } else if (messageType.includes('ORDER_TRADE_UPDATE')) {
+            return 'type-order_upd';
+        } else if (messageType.includes('ACCOUNT_UPDATE')) {
+            return 'type-account_upd';
+        } else if (messageType.includes('TRADE_LITE')) {
+            return 'type-trade_lt';
+      //   } else if (messageType.includes('ORDER_TRADE_UPDATE') || messageType.includes('ACCOUNT_UPDATE')) {
+      //       return 'type-websocket';
         } else {
             return 'type-unknown';
         }
     }
     
-    function formatMessageCell(td, cellValue) {
-        /**
-         * Специальное форматирование для колонки message (JSON)
-         */
-        if (cellValue) {
-            try {
-                // Пытаемся распарсить JSON
-                const jsonData = JSON.parse(cellValue);
-                
-                // Создаем красиво отформатированный JSON
-                const formattedJson = JSON.stringify(jsonData, null, 2);
-                
-                // Создаем контейнер для JSON
-                const jsonContainer = DOM.create('div', 'json-message');
-                jsonContainer.textContent = formattedJson;
-                
-                // Добавляем tooltip с полным содержимым
-                td.title = formattedJson;
-                td.appendChild(jsonContainer);
-                
-                // Если JSON слишком длинный, сокращаем отображение
-                if (formattedJson.length > 500) {
-                    const shortJson = formattedJson.substring(0, 500) + '...';
-                    jsonContainer.textContent = shortJson;
-                }
-                
-            } catch (e) {
-                // Если не JSON, показываем как обычный текст
-                td.textContent = cellValue.substring(0, 200) + (cellValue.length > 200 ? '...' : '');
-                td.title = cellValue;
-            }
-        } else {
-            td.textContent = '';
-        }
-    }
+   function formatMessageCell(td, cellValue) {
+      // Сохраняем оригинальное значение для переключения режимов
+      td.setAttribute('data-original-value', cellValue);
+      
+      if (cellValue) {
+         try {
+               const jsonData = JSON.parse(cellValue);
+               const jsonContainer = DOM.create('div', 'json-message');
+               
+               let formattedContent;
+               
+               if (messageDisplayMode === 'column') {
+                  // Режим столбца - используем JSON.stringify с отступами для ВСЕХ уровней
+                  formattedContent = JSON.stringify(jsonData, null, 2);
+                  // Убираем ТОЛЬКО внешние фигурные скобки
+                  formattedContent = formattedContent.replace(/^\{\s*/, '').replace(/\s*\}$/, '');
+                  
+                  jsonContainer.style.whiteSpace = 'pre-wrap';
+                  jsonContainer.style.width = 'max-content';
+               } else {
+                  // Режим строки - все в одну строку БЕЗ внешних скобок
+                  const entries = Object.entries(jsonData);
+                  formattedContent = entries
+                     .map(([key, value]) => `"${key}": ${JSON.stringify(value)}`)
+                     .join(', ');
+                  
+                  jsonContainer.style.whiteSpace = 'nowrap';
+                  jsonContainer.style.width = 'max-content';
+               }
+               
+               jsonContainer.textContent = formattedContent;
+               // Добавляем tooltip только в режиме строки
+               if (messageDisplayMode === 'inline') {
+                  td.title = JSON.stringify(jsonData, null, 2);
+               } else {
+                  td.title = ''; // Убираем tooltip в режиме колонок
+               }
+               
+               // Очищаем и добавляем контейнер
+               td.innerHTML = '';
+               td.appendChild(jsonContainer);
+            
+               
+         } catch (e) {
+               td.textContent = cellValue.substring(0, 200) + (cellValue.length > 200 ? '...' : '');
+               if (messageDisplayMode === 'inline') {
+                  td.title = cellValue;
+               } else {
+                  td.title = '';
+               }
+         }
+      } else {
+         td.textContent = '';
+      }
+   }
     
     function highlightJsonField(jsonString, fieldName) {
         /**
@@ -191,6 +220,45 @@ window.MessagesTable = (function() {
         const currentText = td.textContent;
         td.innerHTML = `${icon} ${currentText}`;
     }
+   
+   // Переменная для отслеживания режима отображения
+   let messageDisplayMode = 'inline'; // 'inline' или 'column'
+
+   function toggleMessageFormat() {
+      messageDisplayMode = messageDisplayMode === 'inline' ? 'column' : 'inline';
+      
+      // Обновляем все ячейки message
+      const messageCells = document.querySelectorAll('td[data-column="message"]');
+      messageCells.forEach(cell => {
+         const cellValue = cell.getAttribute('data-original-value');
+         if (cellValue) {
+               formatMessageCell(cell, cellValue);
+         }
+      });
+      
+      // НОВЫЙ ПОДХОД - пересоздание контейнера
+      const container = document.querySelector('.messages-table-container');
+      const parent = container.parentElement;
+      const table = container.querySelector('table');
+      
+      // Удаляем контейнер из DOM
+      parent.removeChild(container);
+      
+      // Создаем новый контейнер
+      const newContainer = document.createElement('div');
+      newContainer.className = 'scroll-table messages-table-container';
+      newContainer.appendChild(table);
+      
+      // Вставляем обратно
+      parent.appendChild(newContainer);
+      
+      // Обновляем иконку кнопки
+      const toggleBtn = document.getElementById('toggle-message-format-btn');
+      if (toggleBtn) {
+         toggleBtn.textContent = messageDisplayMode === 'inline' ? '↕️' : '↔️';
+      }
+   }
+
     
     // Публичный API модуля
     return {
@@ -199,6 +267,8 @@ window.MessagesTable = (function() {
         formatCell,
         formatMessageCell,
         getTypeClass,
-        getMessageTypeIcon
+        getMessageTypeIcon,
+        toggleMessageFormat
+        
     };
 })();

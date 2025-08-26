@@ -15,6 +15,7 @@ import hashlib
 
 from .database import db_manager
 from .sockets_database import sockets_db_manager
+from .messages_database import messages_db_manager
 
 logger = logging.getLogger(__name__)
 

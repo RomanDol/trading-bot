@@ -179,6 +179,7 @@
     width: fit-content;
     max-width: 100%;
     margin: 0 auto;
+    overflow-x: auto;
 }
 
 .messages-table-container table {
@@ -246,10 +247,8 @@
 
 /* Колонка message */
 .messages-table-container td[data-column="message"] {
-    max-width: 800px;
-    min-width: 400px;
     white-space: normal;
-    font-size: 8.5px;
+    font-size: 10px;
     line-height: var(--line-height-tight);
     color: var(--text-muted);
     padding: var(--spacing-sm) 12px;
@@ -275,12 +274,7 @@
     font-family: var(--font-mono);
     white-space: pre-wrap;
     word-wrap: break-word;
-    max-height: 200px;
     overflow-y: auto;
-    background: var(--bg-dark-tertiary);
-    padding: var(--spacing-xs);
-    border-radius: var(--border-radius-sm);
-    border: var(--border-width) solid var(--border-color);
 }
 
 .json-message::-webkit-scrollbar {
@@ -302,8 +296,14 @@
     color: var(--color-success);
 }
 
-.type-websocket {
+.type-order_upd {
     color: var(--color-warning);
+}
+.type-account_upd {
+    color: var(--color-error);
+}
+.type-trade_lt {
+    color: darkorchid;
 }
 
 .type-unknown {

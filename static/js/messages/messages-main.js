@@ -88,6 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Добавляем tooltip
             exportBtn.title = 'Экспорт в Excel (Shift+Click для расширенных опций)';
         }
+       
+         const toggleMessageFormatBtn = DOM.get('toggle-message-format-btn');
+         if (toggleMessageFormatBtn) {
+            toggleMessageFormatBtn.addEventListener('click', function() {
+                  window.MessagesTable.toggleMessageFormat();
+                  console.log('🔄 Переключен формат отображения сообщений');
+            });
+         }
         
         // Обработка формы фильтров
         const filterForm = document.querySelector('.filter-form');

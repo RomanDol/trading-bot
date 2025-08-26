@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from .database import db_manager
 from .binance_client import binance_client
+from .messages_database import messages_db_manager
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -138,12 +139,9 @@ class WebhookHandler:
                     logger.info(f"📋 Сохранен order_id: {response_data['orderId']}")
             except:
                 logger.warning("⚠️ Не удалось извлечь order_id из ответа")
+
+
             
-            return success, message, extra_data
-
-
-
-
             # Записываем ответ от Binance API в общую базу
             try:
                 binance_response = json.loads(message) if isinstance(message, str) else message
@@ -151,6 +149,13 @@ class WebhookHandler:
                 messages_db_manager.log_message('BINANCE_API', binance_response)
             except Exception as e:
                 logger.warning(f"⚠️ Не удалось записать ответ Binance API: {e}")
+
+
+            return success, message, extra_data
+
+
+
+
 
 
                 
