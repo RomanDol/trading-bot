@@ -1,0 +1,44 @@
+{
+  "id": {
+    "name": "#",
+    "visible": true,
+    "order": 0,
+    "width": "60px"
+  },
+  "timestamp": {
+    "name": "timestamp",
+    "visible": true,
+    "order": 1,
+    "width": "140px"
+  },
+  "event_type": {
+    "name": "event_type",
+    "visible": true,
+    "order": 2,
+    "width": "150px"
+  },
+  "symbol": {
+    "name": "symbol",
+    "visible": true,
+    "order": 3,
+    "width": "100px"
+  },
+  "order_id": {
+    "name": "order_id",
+    "visible": true,
+    "order": 4,
+    "width": "120px"
+  },
+  "status": {
+    "name": "status",
+    "visible": true,
+    "order": 5,
+    "width": "100px"
+  },
+  "raw_message": {
+    "name": "raw_message",
+    "visible": false,
+    "order": 6,
+    "width": "800px"
+  }
+}

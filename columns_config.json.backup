@@ -1,0 +1,56 @@
+{
+  "id": {
+    "name": "#",
+    "visible": true,
+    "order": 0,
+    "width": "60px"
+  },
+  "timestamp": {
+    "name": "Time",
+    "visible": true,
+    "order": 1,
+    "width": "140px"
+  },
+  "action": {
+    "name": "Action",
+    "visible": true,
+    "order": 2,
+    "width": "100px"
+  },
+  "symbol": {
+    "name": "Symbol",
+    "visible": true,
+    "order": 3,
+    "width": "100px"
+  },
+  "quantity": {
+    "name": "Qty",
+    "visible": true,
+    "order": 4,
+    "width": "80px"
+  },
+  "result": {
+    "name": "Result",
+    "visible": true,
+    "order": 5,
+    "width": "100px"
+  },
+  "strategy": {
+    "name": "Strategy",
+    "visible": true,
+    "order": 6,
+    "width": "120px"
+  },
+  "message": {
+    "name": "Message",
+    "visible": false,
+    "order": 7,
+    "width": "200px"
+  },
+  "extra_data": {
+    "name": "Extra Data",
+    "visible": false,
+    "order": 9,
+    "width": "100px"
+  }
+}
