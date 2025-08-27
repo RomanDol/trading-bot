@@ -5,9 +5,8 @@ from flask import request, jsonify
 """
 import time
 import subprocess
-from core.database import db_manager
-from flask import request, jsonify
-
+from backend.core.database import db_manager
+from flask import request
 SERVICE_NAME = "trading-bot"
 
 class RouteHandlers:
