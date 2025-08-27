@@ -1,3 +1,4 @@
+from flask import request, jsonify
 """
 Маршруты Flask для веб-интерфейса управления ботом
 Очищенная версия - только Dashboard и Control Panel
@@ -5,6 +6,7 @@
 import time
 import subprocess
 from core.database import db_manager
+from flask import request, jsonify
 
 SERVICE_NAME = "trading-bot"
 
