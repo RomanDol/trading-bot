@@ -1,5 +1,6 @@
 """
 Модули веб-интерфейса Trading Bot
+Очищенная версия - только auth и routes
 """
 
 from .auth import auth_manager

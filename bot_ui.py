@@ -1,97 +1,97 @@
-# ===== bot_ui.py =====
 """
-Flask веб-интерфейс с НАСТОЯЩИМ универсальным ридером таблиц
+Flask веб-интерфейс для управления Trading Bot
+Очищенная версия - только Dashboard и Control Panel
 """
 from flask import Flask, render_template, request
 from ui.auth import auth_manager
 from ui.routes import route_handlers
-from ui.universal_reader import universal_reader
+from datetime import datetime
 
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
+app.config['JSON_AS_ASCII'] = False  # Поддержка UTF-8 в JSON
+
+# ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВСЕХ ШАБЛОНОВ =====
 
 @app.context_processor
 def inject_globals():
-    return {'status': route_handlers.get_status()}
+    """Внедряет глобальные переменные во все шаблоны"""
+    return {
+        'status': route_handlers.get_status()
+    }
+
+# ===== MIDDLEWARE =====
 
 @app.before_request
 def auth_middleware():
+    """Middleware для проверки аутентификации"""
     return auth_manager.require_auth()
 
 # ===== ОСНОВНЫЕ МАРШРУТЫ =====
 
 @app.route('/', endpoint='dashboard')
 def dashboard():
+    """Главная страница - дашборд"""
     data = route_handlers.handle_dashboard()
     return render_template('dashboard.html', **data)
 
 @app.route('/control', methods=['GET', 'POST'], endpoint='control')
 def control():
+    """Страница управления сервисом"""
     if request.method == 'POST':
         data = route_handlers.handle_control_post()
     else:
-        data = {'logs': '', 'message': ''}
+        data = {
+            'logs': '', 
+            'message': ''
+        }
+    
     return render_template('control.html', **data)
 
-# ===== УНИВЕРСАЛЬНЫЙ РИДЕР ДЛЯ ВСЕХ ТАБЛИЦ =====
+# ===== API МАРШРУТЫ (для интеграции с PostgREST) =====
 
-@app.route('/<table_type>', methods=['GET'])
-def universal_table(table_type):
-    """ОДИН маршрут для всех таблиц"""
-    data = universal_reader.handle_table_page(table_type)
-    if 'error' in data:
-        return render_template('error.html', 
-                             error_code=404, 
-                             error_message=data['error']), 404
-    return render_template('universal_table.html', **data)
+@app.route('/api/realtime_data')
+def realtime_data():
+    """API для получения данных в реальном времени"""
+    from core.binance_client import binance_client
+    
+    ws_stats = binance_client.get_websocket_stats()
+    positions = binance_client.get_realtime_positions()
+    balances = binance_client.get_realtime_balances()
+    
+    return jsonify({
+        'websocket_status': {
+            'connected': ws_stats.get('is_connected', False),
+            'messages_received': ws_stats.get('messages_received', 0),
+            'orders_tracked': ws_stats.get('orders_updated', 0),
+            'last_message_time': ws_stats.get('last_message_time')
+        },
+        'positions': positions,
+        'balances': balances,
+        'timestamp': datetime.now().isoformat()
+    })
 
-@app.route('/<table_type>/data')
-def universal_table_data(table_type):
-    """ОДИН API endpoint для данных всех таблиц"""
-    return universal_reader.handle_table_data(table_type)
+# ===== ЗАГЛУШКИ ДЛЯ POSTGREST ИНТЕГРАЦИИ =====
 
-@app.route('/<table_type>/save_columns_config', methods=['POST'])
-def universal_save_config(table_type):
-    """ОДИН API endpoint для сохранения конфигов всех таблиц"""
-    return universal_reader.handle_save_config(table_type)
-
-# ===== ОБРАТНАЯ СОВМЕСТИМОСТЬ (старые URL) =====
-
-@app.route('/signals_data')
-def signals_data_old():
-    """Старый URL signals_data"""
-    return universal_reader.handle_table_data('signals')
-
-@app.route('/save_columns_config', methods=['POST'])
-def save_columns_config_old():
-    """Старый URL save_columns_config"""
-    return universal_reader.handle_save_config('signals')
-
-# ===== УТИЛИТЫ =====
-
-@app.template_filter('tojsonfilter')
-def tojson_filter(obj):
-    import json
-    return json.dumps(obj, ensure_ascii=False)
-
-@app.errorhandler(404)
-def not_found(error):
-    return render_template('error.html', 
-                         error_code=404, 
-                         error_message="Страница не найдена"), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return render_template('error.html', 
-                         error_code=500, 
-                         error_message="Внутренняя ошибка сервера"), 500
+@app.route('/admin')
+def admin_redirect():
+    """Перенаправление на PostgREST Admin"""
+    return """
+    <div style="padding: 20px; background: #111; color: #fff; font-family: monospace;">
+        <h2>🚀 Database Admin</h2>
+        <p>PostgREST Admin будет доступен по адресу:</p>
+        <ul>
+            <li><a href="http://localhost:3000" style="color: #00ff88;">PostgREST API</a></li>
+            <li><a href="http://localhost:8080" style="color: #00ff88;">PostgREST Admin UI</a></li>
+        </ul>
+        <p><a href="/" style="color: #00ff88;">← Назад к Dashboard</a></p>
+    </div>
+    """
 
 if __name__ == '__main__':
-    print("🚀 Запуск Trading Bot UI с универсальным ридером...")
+    print("🚀 Запуск Trading Bot UI (Clean Version)...")
     print(f"👤 Пользователь: {auth_manager.username}")
     print(f"🔐 Пароль: {'*' * len(auth_manager.password)}")
     print(f"🌐 Адрес: http://localhost:8888")
-    print("📊 Универсальные таблицы: signals, messages, sockets")
-    print("🔗 URL: /<table_type> - работает для любой таблицы")
+    print("📊 Таблицы будут доступны через PostgREST Admin")
     
     app.run(host='0.0.0.0', port=8888, debug=True)

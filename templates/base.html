@@ -40,15 +40,12 @@
                 <a href="/control" class="nav-item {% if request.endpoint == 'control' %}nav-item--active{% endif %}">
                     ⚙️ Control Panel
                 </a>
-                <a href="/signals" class="nav-item {% if request.endpoint == 'signals' %}nav-item--active{% endif %}">
-                    📊 Signal History
+                
+                <!-- PostgREST Admin Links -->
+                <a href="/admin" class="nav-item" target="_blank">
+                    🗄️ Database Admin
                 </a>
-                <a href="/sockets" class="nav-item {% if request.endpoint == 'sockets' %}nav-item--active{% endif %}">
-                    📡 Socket History
-                </a>
-                <a href="/messages" class="nav-item {% if request.endpoint == 'messages' %}nav-item--active{% endif %}">
-                    💬 All Messages
-                </a>
+                
                 <div class="nav-item nav-item--disabled">
                     📈 Analytics
                 </div>
@@ -92,46 +89,20 @@
                 <a href="/control" class="mobile-nav-item {% if request.endpoint == 'control' %}mobile-nav-item--active{% endif %}">
                     ⚙️ Control Panel
                 </a>
-                <a href="/signals" class="mobile-nav-item {% if request.endpoint == 'signals' %}mobile-nav-item--active{% endif %}">
-                    📊 Signal History
+                <a href="/admin" class="mobile-nav-item" target="_blank">
+                    🗄️ Database Admin
                 </a>
-                <a href="/sockets" class="mobile-nav-item {% if request.endpoint == 'sockets' %}mobile-nav-item--active{% endif %}">
-                    📡 Socket History
-                </a>
-                <a href="/messages" class="mobile-nav-item {% if request.endpoint == 'messages' %}mobile-nav-item--active{% endif %}">
-                    💬 All Messages
-                </a>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
-                    📈 Analytics
-                </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
-                    🎯 Strategy Manager
-                </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
-                    🔔 Notifications
-                </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
-                    ⚡ Risk Manager
-                </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
-                    🔧 API Settings
-                </div>
-                <div class="mobile-nav-item mobile-nav-item--disabled">
-                    🏆 Performance
-                </div>
             </div>
         </div>
     </nav>
-    
-    <div class="page-wrapper">
+
+    <!-- Main Content -->
+    <main class="main-content">
         {% block content %}{% endblock %}
-    </div>
-    
-    <!-- Common JavaScript -->
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
-    
-    <!-- Page-specific JavaScript -->
+    </main>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
     {% block js %}{% endblock %}
 </body>
 </html>
