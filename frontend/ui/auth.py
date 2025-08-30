@@ -33,7 +33,7 @@ class AuthManager:
             Response or None: Response с запросом авторизации или None если авторизован
         """
         # Пропускаем статические файлы
-        if request.path.startswith('/static/'):
+        if request.path.startswith('/static/') or request.path == '/grafana':
             return None
         
         auth = request.authorization

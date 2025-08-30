@@ -37,7 +37,6 @@ def not_found(error):
 def internal_error(error):
     return render_template('error.html', error_code=500, error_message="Внутренняя ошибка сервера"), 500
 
-# Убрали /dashboard_realtime и tojsonfilter
 
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot UI...")
@@ -47,3 +46,4 @@ if __name__ == '__main__':
     # Убрали print с os.getcwd()
     
     app.run(host='0.0.0.0', port=8888, debug=False)
+

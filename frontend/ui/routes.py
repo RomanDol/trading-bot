@@ -106,5 +106,7 @@ class RouteHandlers:
             'success': success
         }
 
+
+
 # Создаем экземпляр для использования в приложении
 route_handlers = RouteHandlers()

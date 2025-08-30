@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Grafana - Trading Bot{% endblock %}
+
+{% block css %}
+<style>
+.grafana-container {
+    width: 100%;
+    height: calc(100vh - 50px);
+    overflow: hidden;
+}
+
+.grafana-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+}
+
+.grafana-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    background: var(--bg-dark-secondary);
+    border-radius: 8px;
+    margin: 20px 0;
+    color: var(--text-primary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    
+    <div class="grafana-container">
+        <div class="grafana-loading" id="loading">
+            <div>📊 Loading Grafana...</div>
+        </div>
+        <iframe 
+            id="grafana-iframe"
+            class="grafana-iframe" 
+            src="http://49.12.233.74/grafana/"
+            style="display: none;"
+            onload="document.getElementById('loading').style.display='none'; this.style.display='block';"
+            title="Grafana Dashboard">
+        </iframe>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+// Проверка доступности Grafana
+setTimeout(function() {
+    if (document.getElementById('loading').style.display !== 'none') {
+        document.getElementById('loading').innerHTML = 
+            '<div style="text-align: center;">' +
+            '⚠️ Grafana недоступен<br>' +
+            '<small>Проверьте что сервис запущен на порту 3000</small>' +
+            '</div>';
+    }
+}, 10000);
+</script>
+{% endblock %}
