@@ -83,38 +83,7 @@ class SimpleBinanceWebSocket:
         logger.info("✅ WebSocket мониторинг запущен")
         return True
 
-    def _generate_message_hash(self, raw_message: str) -> str:
-        """Генерирует уникальный хэш для сообщения"""
-        try:
-            data = json.loads(raw_message)
-            
-            if data.get('e') == 'ORDER_TRADE_UPDATE':
-                order_data = data.get('o', {})
-                dedup_key = f"ORDER:{order_data.get('i')}:{order_data.get('X')}:{order_data.get('T')}"
-            elif data.get('e') == 'ACCOUNT_UPDATE':
-                dedup_key = f"ACCOUNT:{data.get('E')}:{data.get('T')}"
-            else:
-                dedup_key = f"{data.get('e')}:{data.get('E')}"
-            
-            return hashlib.md5(dedup_key.encode()).hexdigest()
-            
-        except:
-            return hashlib.md5(raw_message.encode()).hexdigest()
 
-    def _is_duplicate_message(self, message_hash: str) -> bool:
-        """Проверяет является ли сообщение дубликатом"""
-        if message_hash in self.processed_messages:
-            return True
-        
-        self.processed_messages.add(message_hash)
-        
-        # Ограничиваем размер кэша
-        if len(self.processed_messages) > self.message_cache_size:
-            old_hashes = list(self.processed_messages)[:100]
-            for old_hash in old_hashes:
-                self.processed_messages.discard(old_hash)
-        
-        return False
 
     def _run_websocket(self):
         """Основной цикл WebSocket"""
@@ -156,16 +125,26 @@ class SimpleBinanceWebSocket:
                     logger.info("🔄 Переподключение через 10 секунд...")
                     time.sleep(10)
 
+
     def _on_message(self, ws, message):
-        """Получено сообщение с дедупликацией"""
+        """Получено сообщение с упрощенной дедупликацией"""
         try:
-            # Дедупликация на самом раннем этапе
-            message_hash = self._generate_message_hash(message)
+            # Простая дедупликация по полному сообщению
+            message_hash = hashlib.md5(message.encode('utf-8')).hexdigest()
             
-            if self._is_duplicate_message(message_hash):
+            if message_hash in self.processed_messages:
                 self.stats['messages_duplicated'] += 1
                 logger.debug(f"🔄 ДУБЛИКАТ пропущен (всего: {self.stats['messages_duplicated']})")
                 return  # ПРОПУСКАЕМ ДУБЛИКАТ
+            
+            # Добавляем в кэш
+            self.processed_messages.add(message_hash)
+            
+            # Ограничиваем размер кэша
+            if len(self.processed_messages) > self.message_cache_size:
+                old_hashes = list(self.processed_messages)[:100]
+                for old_hash in old_hashes:
+                    self.processed_messages.discard(old_hash)
             
             # Парсим сообщение
             data = json.loads(message)
@@ -206,11 +185,11 @@ class SimpleBinanceWebSocket:
             import traceback
             logger.error(f"💥 Traceback: {traceback.format_exc()}")
 
+
     def _should_save_message(self, event_type, data):
         """Определяет нужно ли сохранять сообщение в базу"""
         # Пропускаем TRADE_LITE
         if event_type == 'TRADE_LITE':
-            logger.debug(f"🔇 Пропущено TRADE_LITE сообщение")
             return False
         
         # ORDER_TRADE_UPDATE только со статусом FILLED
@@ -218,8 +197,7 @@ class SimpleBinanceWebSocket:
             order_data = data.get('o', {})
             status = order_data.get('X', '')
             
-            if status != 'FILLED':
-                logger.debug(f"🔇 Пропущено ORDER_TRADE_UPDATE со статусом: {status}")
+            if status == 'NEW':
                 return False
         
         return True
