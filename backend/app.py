@@ -1,20 +1,19 @@
 """
 Главное Flask приложение для приема webhook сигналов и торговли
-Очищенная версия без обратной совместимости
 """
 import logging
 from flask import Flask, jsonify
 from core.webhook_handler import webhook_handler
 from datetime import datetime
 
-# ✅ Настройка логирования
+# Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# ✅ Создание Flask приложения
+# Создание Flask приложения
 app = Flask(__name__)
 
 # ===== ОСНОВНЫЕ МАРШРУТЫ =====
@@ -29,10 +28,6 @@ def webhook():
 def health():
     """Health check endpoint"""
     return {'status': 'ok', 'service': 'trading-bot'}
-
-
-
-
 
 @app.route('/realtime_positions')
 def realtime_positions():
@@ -56,7 +51,6 @@ def websocket_stats():
 def health_extended():
     """Расширенная проверка здоровья системы"""
     from core.binance_client import binance_client
-    from core.database import db_manager
     
     ws_stats = binance_client.get_websocket_stats()
     
@@ -67,18 +61,8 @@ def health_extended():
             'connected': ws_stats.get('is_connected', False),
             'messages_received': ws_stats.get('messages_received', 0),
             'connection_duration': ws_stats.get('connection_duration')
-        },
-        'database': {
-            'accessible': True,
-            'total_signals': db_manager.get_signals_count()
         }
     })
-
-
-
-
-
-
 
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot с WebSocket мониторингом...")
@@ -88,7 +72,8 @@ if __name__ == '__main__':
     print("🔧 WebSocket статистика: http://localhost:5000/websocket_stats")
     
     app.run(host='0.0.0.0', port=5000, debug=False)
-# ИСПРАВЛЕНИЕ: Принудительная инициализация WebSocket
+
+# Принудительная инициализация WebSocket
 print("🔧 Добавление принудительной инициализации WebSocket...")
 try:
     from core.binance_client import binance_client

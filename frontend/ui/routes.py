@@ -1,12 +1,10 @@
-from flask import request, jsonify
 """
 Маршруты Flask для веб-интерфейса управления ботом
-Очищенная версия - только Dashboard и Control Panel
 """
 import time
 import subprocess
-from backend.core.database import db_manager
 from flask import request
+
 SERVICE_NAME = "trading-bot"
 
 class RouteHandlers:
@@ -75,9 +73,8 @@ class RouteHandlers:
     def handle_dashboard():
         """Обработчик главной страницы"""
         try:
-            stats = db_manager.get_stats()
             return {
-                'stats': stats,
+                'stats': {},
                 'status': RouteHandlers.get_status()
             }
         except Exception as e:
@@ -105,8 +102,6 @@ class RouteHandlers:
             'message': message,
             'success': success
         }
-
-
 
 # Создаем экземпляр для использования в приложении
 route_handlers = RouteHandlers()

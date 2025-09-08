@@ -7,7 +7,6 @@ from typing import Dict, Any, Tuple
 from flask import request
 from dotenv import load_dotenv
 
-from .database import db_manager
 from .binance_client import binance_client
 from .messages_database import messages_db_manager
 
@@ -98,8 +97,6 @@ class WebhookHandler:
         
         return signal_data
     
-
-
     def execute_trading_action(self, signal_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
         """
         Выполняет торговое действие
@@ -139,33 +136,22 @@ class WebhookHandler:
                     logger.info(f"📋 Сохранен order_id: {response_data['orderId']}")
             except:
                 logger.warning("⚠️ Не удалось извлечь order_id из ответа")
-
-
             
             # Записываем ответ от Binance API в общую базу
             try:
+                import json
                 binance_response = json.loads(message) if isinstance(message, str) else message
                 binance_response['e'] = 'BINANCE_API'
                 messages_db_manager.log_message('BINANCE_API', binance_response)
             except Exception as e:
                 logger.warning(f"⚠️ Не удалось записать ответ Binance API: {e}")
 
-
             return success, message, extra_data
-
-
-
-
-
-
                 
         except Exception as e:
             error_msg = f"Ошибка выполнения {action}: {str(e)}"
             logger.error(f"❌ {error_msg}")
             return False, error_msg, {}
-
-
-
 
     def process_webhook(self) -> Tuple[Dict[str, Any], int]:
         """
@@ -182,20 +168,13 @@ class WebhookHandler:
             data = request.get_json()
             logger.info(f"🔔 Webhook получен: {data}")
 
-
-
-
             # Записываем сообщение от стратегии в общую базу
-            from .messages_database import messages_db_manager
             try:
                 strategy_message = data.copy()
                 strategy_message['e'] = 'STRATEGY_SIGNAL'
                 messages_db_manager.log_message('STRATEGY_SIGNAL', strategy_message)
             except Exception as e:
                 logger.warning(f"⚠️ Не удалось записать сообщение стратегии: {e}")
-
-
-
             
             # Валидируем запрос
             is_valid, error_message = self.validate_request(data)
@@ -212,26 +191,13 @@ class WebhookHandler:
             # Объединяем дополнительные данные
             extra_data = signal_data.get('extra_data', {})
             extra_data.update(binance_extra_data)
-
-            # Логируем в базу данных
-            result_status = 'success' if success else 'error'
-            signal_id = db_manager.log_signal(
-                action=signal_data['action'],
-                symbol=signal_data['symbol'],
-                quantity=signal_data['quantity'],
-                result=result_status,
-                message=message,
-                strategy=signal_data['strategy'],
-                extra_data=extra_data
-            )
             
-            logger.info(f"📌 Сигнал #{signal_id} обработан: {result_status}")
+            logger.info(f"📌 Webhook обработан: {'success' if success else 'error'}")
             
             # Формируем ответ
             response = {
                 'status': 'success' if success else 'error',
                 'message': message,
-                'signal_id': signal_id,
                 'action': signal_data['action'],
                 'symbol': signal_data['symbol'],
                 'quantity': signal_data['quantity']
@@ -243,19 +209,6 @@ class WebhookHandler:
         except Exception as e:
             error_msg = f"Критическая ошибка обработки webhook: {str(e)}"
             logger.error(f"💥 {error_msg}")
-            
-            # Пытаемся записать ошибку в БД
-            try:
-                db_manager.log_signal(
-                    action="ERROR",
-                    symbol="N/A",
-                    quantity=0,
-                    result="error",
-                    message=error_msg,
-                    strategy="system"
-                )
-            except:
-                pass  # Игнорируем ошибки записи в БД
             
             return {"status": "error", "message": "Внутренняя ошибка сервера"}, 500
 
