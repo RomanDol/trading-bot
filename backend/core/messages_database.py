@@ -6,16 +6,20 @@ import json
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Tuple
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 # Настройки подключения к PostgreSQL
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5432,
-    'database': 'messages',
-    'user': 'postgres',
-    'password': 'password'
+    'host': os.getenv('POSTGRES_HOST', 'localhost'),
+    'port': int(os.getenv('POSTGRES_PORT', 5432)),
+    'database': os.getenv('POSTGRES_DATABASE', 'messages'),
+    'user': os.getenv('POSTGRES_USER'),
+    'password': os.getenv('POSTGRES_PASSWORD')
 }
 
 class MessagesDatabaseManager:
