@@ -136,15 +136,6 @@ class WebhookHandler:
                     logger.info(f"📋 Сохранен order_id: {response_data['orderId']}")
             except:
                 logger.warning("⚠️ Не удалось извлечь order_id из ответа")
-            
-            # Записываем ответ от Binance API в общую базу
-            try:
-                import json
-                binance_response = json.loads(message) if isinstance(message, str) else message
-                binance_response['e'] = 'BINANCE_API'
-                messages_db_manager.log_message('BINANCE_API', binance_response)
-            except Exception as e:
-                logger.warning(f"⚠️ Не удалось записать ответ Binance API: {e}")
 
             return success, message, extra_data
                 
@@ -167,14 +158,6 @@ class WebhookHandler:
             # Получаем данные запроса
             data = request.get_json()
             logger.info(f"🔔 Webhook получен: {data}")
-
-            # Записываем сообщение от стратегии в общую базу
-            try:
-                strategy_message = data.copy()
-                strategy_message['e'] = 'STRATEGY_SIGNAL'
-                messages_db_manager.log_message('STRATEGY_SIGNAL', strategy_message)
-            except Exception as e:
-                logger.warning(f"⚠️ Не удалось записать сообщение стратегии: {e}")
             
             # Валидируем запрос
             is_valid, error_message = self.validate_request(data)
@@ -187,6 +170,21 @@ class WebhookHandler:
             
             # Выполняем торговое действие
             success, message, binance_extra_data = self.execute_trading_action(signal_data)
+
+            # Записываем сообщение от стратегии с ответом Binance в общую базу
+            try:
+                import json
+                strategy_message = data.copy()
+                strategy_message['e'] = 'STRATEGY_SIGNAL'
+                
+                # Добавляем полный ответ от Binance API в поле ba
+                if message:  # если есть ответ от API
+                    binance_response = json.loads(message) if isinstance(message, str) else message
+                    strategy_message['ba'] = binance_response
+                
+                messages_db_manager.log_message('STRATEGY_SIGNAL', strategy_message)
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось записать сообщение стратегии: {e}")
 
             # Объединяем дополнительные данные
             extra_data = signal_data.get('extra_data', {})

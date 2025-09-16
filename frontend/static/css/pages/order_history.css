@@ -1,0 +1,89 @@
+/* ===== ORDER HISTORY PAGE STYLES ===== */
+
+.order-history-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--input-padding);
+    background: var(--input-bg);
+    border: var(--border-width) solid var(--input-border);
+    border-radius: var(--border-radius-base);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+}
+
+.date-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.load-button {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--bg-gradient-primary);
+    border: var(--border-width-thick) solid var(--color-primary);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.load-button:hover:not(:disabled) {
+    border-color: var(--color-secondary);
+    box-shadow: var(--shadow-glow-secondary);
+    transform: translateY(-1px);
+}
+
+.load-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.message {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    display: none;
+}
+
+.message--success {
+    background: linear-gradient(145deg, #1a2a1a, #2a3a2a);
+    border: var(--border-width) solid var(--color-success);
+    color: var(--color-success);
+}
+
+.message--error {
+    background: linear-gradient(145deg, #2a1a1a, #3a2a2a);
+    border: var(--border-width) solid var(--color-error);
+    color: var(--color-error);
+}
+
+@media (max-width: 768px) {
+    .date-inputs {
+        grid-template-columns: 1fr;
+    }
+}

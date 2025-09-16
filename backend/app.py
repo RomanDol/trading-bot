@@ -2,8 +2,9 @@
 Главное Flask приложение для приема webhook сигналов и торговли
 """
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from core.webhook_handler import webhook_handler
+from core.order_restore import order_restore_manager
 from datetime import datetime
 
 # Настройка логирования
@@ -63,6 +64,13 @@ def health_extended():
             'connection_duration': ws_stats.get('connection_duration')
         }
     })
+
+
+@app.route('/api/restore_orders', methods=['POST'])
+def restore_orders():
+    data = request.get_json()
+    success, message = order_restore_manager.restore_orders(data['start_date'], data['end_date'])
+    return jsonify({'status': 'success' if success else 'error', 'message': message})
 
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot с WebSocket мониторингом...")

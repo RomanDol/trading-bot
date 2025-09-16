@@ -46,9 +46,13 @@
                     🗄️ Database Admin
                 </a>
 
-<a href="http://49.12.233.74/grafana/" target="_blank" class="nav-item">
-    📊 Grafana
-</a>
+                <a href="http://49.12.233.74/grafana/" target="_blank" class="nav-item">
+                    📊 Grafana
+                </a>
+
+                <a href="/order_history" class="nav-item {% if request.endpoint == 'order_history' %}nav-item--active{% endif %}">
+                    📊 Order History
+                </a>
 
 
                 <div class="nav-item nav-item--disabled">
@@ -97,6 +101,12 @@
                 <a href="/admin" class="mobile-nav-item" target="_blank">
                     🗄️ Database Admin
                 </a>
+                <a href="http://49.12.233.74/grafana/" target="_blank" class="mobile-nav-item">
+                    📊 Grafana
+                </a>
+                <a href="/order_history" class="mobile-nav-item {% if request.endpoint == 'order_history' %}mobile-nav-item--active{% endif %}">
+                    📊 Order History
+                </a>
             </div>
         </div>
     </nav>
@@ -107,6 +117,7 @@
     </main>
 
     <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/base.js') }}"></script>
     {% block js %}{% endblock %}
 </body>
