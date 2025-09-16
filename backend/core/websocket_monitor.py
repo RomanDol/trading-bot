@@ -60,6 +60,26 @@ class SimpleBinanceWebSocket:
             'messages_saved_to_db': 0
         }
 
+        self.last_ping_time = None
+        self.recovery_active = False
+        self.recovery_thread = None
+        self.monitor_thread = None
+
+    def _on_ping(self, ws, payload):
+        """Получен ping от сервера"""
+        self.last_ping_time = datetime.now()
+        
+        # Логирование
+        with open('logs/ping_log.txt', 'a') as f:
+            f.write(f"{self.last_ping_time}: PING received\n")
+        
+        # Останавливаем восстановление если оно было активно
+        if self.recovery_active:
+            self.stop_recovery()
+            logger.info("WebSocket восстановлен - остановка автовосстановления")
+        
+        ws.pong(payload)
+
     def start(self):
         """Запускает WebSocket мониторинг"""
         with self._start_lock:
@@ -79,6 +99,9 @@ class SimpleBinanceWebSocket:
         # Поток для поддержания listen_key
         keepalive_thread = threading.Thread(target=self._keepalive_loop, daemon=True, name="WebSocket-Keepalive")
         keepalive_thread.start()
+
+        self.monitor_thread = threading.Thread(target=self._monitor_ping, daemon=True, name="WebSocket-PingMonitor")
+        self.monitor_thread.start()
         
         logger.info("✅ WebSocket мониторинг запущен")
         return True
@@ -386,9 +409,109 @@ class SimpleBinanceWebSocket:
         
         return stats
 
+
+
+
+
+    def _monitor_ping(self):
+        """Мониторинг ping каждые 5 минут"""
+        while self.is_running:
+            try:
+                time.sleep(300)  # 5 минут
+                
+                if not self.is_running:
+                    break
+                
+                # Проверяем время последнего ping
+                if self.last_ping_time:
+                    # self.last_ping_time = datetime.now() - timedelta(minutes=10)
+                    time_since_ping = datetime.now() - self.last_ping_time
+                    
+                    if time_since_ping.total_seconds() > 300:  # 5 минут
+                        logger.warning(f"Нет ping уже {time_since_ping.total_seconds():.0f} секунд")
+                        
+                        if not self.recovery_active:
+                            self.start_recovery()
+                    else:
+                        logger.debug(f"Ping OK - последний {time_since_ping.total_seconds():.0f} секунд назад")
+                else:
+                    logger.warning("Ping еще не получен с момента запуска")
+                    # Если WebSocket работает больше 5 минут без ping
+                    if hasattr(self.stats, 'connection_time') and self.stats['connection_time']:
+                        connection_duration = datetime.now() - self.stats['connection_time']
+                        if connection_duration.total_seconds() > 300:
+                            if not self.recovery_active:
+                                self.start_recovery()
+                                
+            except Exception as e:
+                logger.error(f"Ошибка в мониторе ping: {e}")
+
+    def start_recovery(self):
+        """Запуск автовосстановления через order_history"""
+        if self.recovery_active:
+            return
+        
+        self.recovery_active = True
+        logger.info("Запуск автовосстановления данных - WebSocket неактивен")
+        
+        self.recovery_thread = threading.Thread(target=self._recovery_loop, daemon=True, name="WebSocket-Recovery")
+        self.recovery_thread.start()
+
+    def stop_recovery(self):
+        """Остановка автовосстановления"""
+        self.recovery_active = False
+        logger.info("Автовосстановление остановлено")
+
+    def _recovery_loop(self):
+        """Цикл восстановления данных"""
+        first_recovery = True
+        
+        while self.recovery_active and self.is_running:
+            try:
+                # Первое восстановление - за 15 минут
+                if first_recovery:
+                    minutes_back = 15
+                    first_recovery = False
+                    logger.info(f"Первое восстановление за последние {minutes_back} минут")
+                else:
+                    minutes_back = 2
+                    logger.info(f"Восстановление за последние {minutes_back} минут")
+                
+                # Вычисляем даты
+                end_date = datetime.now()
+                start_date = end_date - timedelta(minutes=minutes_back)
+                
+                # Импортируем и вызываем восстановление
+                try:
+                    from .order_restore import order_restore_manager
+                    success, message = order_restore_manager.restore_orders(
+                        start_date.strftime('%Y-%m-%d %H:%M:%S'),
+                        end_date.strftime('%Y-%m-%d %H:%M:%S')
+                    )
+                    
+                    if success:
+                        logger.info(f"Восстановление успешно: {message}")
+                    else:
+                        logger.warning(f"Ошибка восстановления: {message}")
+                        
+                except Exception as e:
+                    logger.error(f"Критическая ошибка восстановления: {e}")
+                
+                # Ждем минуту до следующего восстановления
+                if self.recovery_active:
+                    time.sleep(60)
+                    
+            except Exception as e:
+                logger.error(f"Ошибка в цикле восстановления: {e}")
+                time.sleep(60)
+
+
+
+
+
     def stop(self):
         """Останавливает мониторинг"""
-        logger.info("🛑 Остановка WebSocket мониторинга...")
+        logger.info("Остановка WebSocket мониторинга...")
         
         with self._start_lock:
             self._started = False
@@ -396,7 +519,10 @@ class SimpleBinanceWebSocket:
         self.is_running = False
         self.is_connected = False
         
+        # Остановить восстановление
+        self.stop_recovery()
+        
         if self.ws:
             self.ws.close()
         
-        logger.info("✅ WebSocket мониторинг остановлен")
+        logger.info("WebSocket мониторинг остановлен")
