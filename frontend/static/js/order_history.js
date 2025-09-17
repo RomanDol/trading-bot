@@ -5,30 +5,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadButton = document.getElementById('load-button');
     const message = document.getElementById('message');
     
-    // Устанавливаем сегодняшнюю дату по умолчанию
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('end-date').value = today;
-    
-    // Устанавливаем дату неделю назад для начальной даты
+    // Устанавливаем даты по умолчанию
+    const today = new Date();
     const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    document.getElementById('start-date').value = weekAgo.toISOString().split('T')[0];
+    weekAgo.setDate(today.getDate() - 7);
+
+    const todayStr = today.toISOString().split('T')[0];
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+    document.getElementById('start-datetime').value = weekAgoStr + 'T00:00';
+    document.getElementById('end-datetime').value = todayStr + 'T23:59';
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
-        
-        if (!startDate || !endDate) {
-            showMessage('Заполните обе даты', 'error');
-            return;
-        }
-        
-        if (startDate > endDate) {
-            showMessage('Начальная дата не может быть больше конечной', 'error');
-            return;
-        }
+    const startDate = document.getElementById('start-datetime').value;
+    const endDate = document.getElementById('end-datetime').value;
+
+    if (!startDate || !endDate) {
+        showMessage('Заполните обе даты', 'error');
+        return;
+    }
+
+    if (startDate > endDate) {
+        showMessage('Начальная дата не может быть больше конечной', 'error');
+        return;
+    }
+
+// Преобразуем формат для backend
+const formattedStartDate = startDate.replace('T', ' ') + ':00';
+const formattedEndDate = endDate.replace('T', ' ') + ':00';
         
         // Показываем состояние загрузки
         loadButton.disabled = true;
@@ -41,10 +47,10 @@ document.addEventListener('DOMContentLoaded', function() {
                headers: {
                   'Content-Type': 'application/json',
                },
-               body: JSON.stringify({
-                  start_date: startDate,
-                  end_date: endDate
-               })
+                body: JSON.stringify({
+                    start_date: formattedStartDate,
+                    end_date: formattedEndDate
+                })
             });
             
             const result = await response.json();

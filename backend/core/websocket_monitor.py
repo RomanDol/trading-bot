@@ -421,10 +421,13 @@ class SimpleBinanceWebSocket:
                 
                 if not self.is_running:
                     break
+
+                    logger.warning(f"=== Проверка ping, last_ping_time = {self.last_ping_time} ===")
+
                 
                 # Проверяем время последнего ping
+                # self.last_ping_time = datetime.now() - timedelta(minutes=10)
                 if self.last_ping_time:
-                    # self.last_ping_time = datetime.now() - timedelta(minutes=10)
                     time_since_ping = datetime.now() - self.last_ping_time
                     
                     if time_since_ping.total_seconds() > 300:  # 5 минут
@@ -447,8 +450,10 @@ class SimpleBinanceWebSocket:
                 logger.error(f"Ошибка в мониторе ping: {e}")
 
     def start_recovery(self):
+        logger.warning("=== ВЫЗОВ start_recovery() ===")
         """Запуск автовосстановления через order_history"""
         if self.recovery_active:
+            logger.warning("=== recovery_active уже True, выходим ===")
             return
         
         self.recovery_active = True
@@ -463,6 +468,7 @@ class SimpleBinanceWebSocket:
         logger.info("Автовосстановление остановлено")
 
     def _recovery_loop(self):
+        logger.warning("=== ЗАПУСК _recovery_loop ===")
         """Цикл восстановления данных"""
         first_recovery = True
         
@@ -483,7 +489,9 @@ class SimpleBinanceWebSocket:
                 
                 # Импортируем и вызываем восстановление
                 try:
+                    logger.warning("=== Пытаемся импортировать order_restore_manager ===")
                     from .order_restore import order_restore_manager
+                    logger.warning("=== Импорт успешен ===")
                     success, message = order_restore_manager.restore_orders(
                         start_date.strftime('%Y-%m-%d %H:%M:%S'),
                         end_date.strftime('%Y-%m-%d %H:%M:%S')

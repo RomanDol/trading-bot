@@ -198,8 +198,8 @@ class OrderRestoreManager:
         """
         try:
             # Конвертируем даты в timestamps
-            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-            end_dt = datetime.strptime(end_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
             
             start_time = int(start_dt.timestamp() * 1000)
             end_time = int(end_dt.timestamp() * 1000)
