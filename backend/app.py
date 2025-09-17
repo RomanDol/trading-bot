@@ -2,10 +2,12 @@
 Главное Flask приложение для приема webhook сигналов и торговли
 """
 import logging
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from core.webhook_handler import webhook_handler
 from core.order_restore import order_restore_manager
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 # Настройка логирования
 logging.basicConfig(
@@ -25,45 +27,6 @@ def webhook():
     response_data, status_code = webhook_handler.process_webhook()
     return jsonify(response_data), status_code
 
-@app.route('/health')
-def health():
-    """Health check endpoint"""
-    return {'status': 'ok', 'service': 'trading-bot'}
-
-@app.route('/realtime_positions')
-def realtime_positions():
-    """API для получения позиций в реальном времени"""
-    from core.binance_client import binance_client
-    positions = binance_client.get_realtime_positions()
-    return jsonify({
-        'positions': positions,
-        'total_positions': len(positions),
-        'timestamp': datetime.now().isoformat()
-    })
-
-@app.route('/websocket_stats')
-def websocket_stats():
-    """Статистика WebSocket соединения"""
-    from core.binance_client import binance_client
-    stats = binance_client.get_websocket_stats()
-    return jsonify(stats)
-
-@app.route('/health_extended')
-def health_extended():
-    """Расширенная проверка здоровья системы"""
-    from core.binance_client import binance_client
-    
-    ws_stats = binance_client.get_websocket_stats()
-    
-    return jsonify({
-        'status': 'ok',
-        'service': 'trading-bot',
-        'websocket': {
-            'connected': ws_stats.get('is_connected', False),
-            'messages_received': ws_stats.get('messages_received', 0),
-            'connection_duration': ws_stats.get('connection_duration')
-        }
-    })
 
 
 @app.route('/api/restore_orders', methods=['POST'])
@@ -71,6 +34,29 @@ def restore_orders():
     data = request.get_json()
     success, message = order_restore_manager.restore_orders(data['start_date'], data['end_date'])
     return jsonify({'status': 'success' if success else 'error', 'message': message})
+
+
+def check_auth(username, password):
+    return username == os.getenv('UI_USERNAME') and password == os.getenv('UI_PASSWORD')
+
+def authenticate():
+    return Response(
+        'Authentication required', 401,
+        {'WWW-Authenticate': 'Basic realm="Trading Bot API"'}
+    )
+
+def require_auth():
+    auth = request.authorization
+    if not auth or not check_auth(auth.username, auth.password):
+        return authenticate()
+    return None
+
+@app.before_request
+def auth_middleware():
+    # Только webhook остается без аутентификации для TradingView
+    if request.path == '/webhook':
+        return None
+    return require_auth()
 
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot с WebSocket мониторингом...")

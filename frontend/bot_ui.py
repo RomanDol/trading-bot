@@ -44,24 +44,21 @@ def order_history():
 @app.route('/api/restore_orders', methods=['POST'])
 def restore_orders_api():
     try:
-        print("=== DEBUG: Начало обработки запроса ===")
         import requests
         
         data = request.get_json()
-        print(f"=== DEBUG: Получены данные: {data} ===")
+        auth = request.authorization
         
-        backend_url = 'http://localhost:5000/api/restore_orders'
-        print(f"=== DEBUG: Отправка запроса на {backend_url} ===")
-        
-        response = requests.post(backend_url, json=data, timeout=30)
-        print(f"=== DEBUG: Ответ получен, статус: {response.status_code} ===")
+        response = requests.post(
+            'http://localhost:5000/api/restore_orders', 
+            json=data, 
+            timeout=30,
+            auth=(auth.username, auth.password)
+        )
         
         return response.json(), response.status_code
     except Exception as e:
-        print(f"=== DEBUG: ОШИБКА: {e} ===")
-        import traceback
-        traceback.print_exc()
-        return {'status': 'error', 'message': f'Ошибка: {str(e)}'}, 500
+        return {'status': 'error', 'message': str(e)}, 500
         
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot UI...")
