@@ -27,14 +27,11 @@ def webhook():
     response_data, status_code = webhook_handler.process_webhook()
     return jsonify(response_data), status_code
 
-
-
 @app.route('/api/restore_orders', methods=['POST'])
 def restore_orders():
     data = request.get_json()
     success, message = order_restore_manager.restore_orders(data['start_date'], data['end_date'])
     return jsonify({'status': 'success' if success else 'error', 'message': message})
-
 
 def check_auth(username, password):
     return username == os.getenv('UI_USERNAME') and password == os.getenv('UI_PASSWORD')
@@ -65,20 +62,7 @@ if __name__ == '__main__':
     print("📈 Real-time позиции: http://localhost:5000/realtime_positions")
     print("🔧 WebSocket статистика: http://localhost:5000/websocket_stats")
     
-    print("🔧 Принудительная инициализация WebSocket...")
-    try:
-        from core.binance_client import binance_client
-        if hasattr(binance_client, '_ensure_websocket_initialized'):
-            success = binance_client._ensure_websocket_initialized()
-            if success:
-                print("✅ WebSocket инициализирован успешно!")
-            else:
-                print("❌ Не удалось инициализировать WebSocket")
-        else:
-            print("⚠️ Метод _ensure_websocket_initialized не найден")
-    except Exception as e:
-        print(f"⚠️ Ошибка инициализации WebSocket: {e}")
-        import traceback
-        traceback.print_exc()
+    # УБРАЛИ дублирующую инициализацию WebSocket - она теперь в binance_client.py
+    print("📡 WebSocket инициализируется автоматически при импорте binance_client")
     
     app.run(host='0.0.0.0', port=5000, debug=False)

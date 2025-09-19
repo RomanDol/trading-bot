@@ -322,40 +322,26 @@ def create_binance_client():
             logger.error(f"❌ Критическая ошибка создания клиента: {e2}")
             raise
 
-# ИСПРАВЛЕНИЕ 5: Создание клиента БЕЗ принудительной инициализации WebSocket
+# Создание клиента  WebSocket
 binance_client = create_binance_client()
 
-# ИСПРАВЛЕНИЕ 6: УБИРАЕМ принудительную инициализацию при импорте
-# def force_websocket_init():
-#     """Принудительная инициализация WebSocket при импорте"""
-#     if hasattr(binance_client, '_ensure_websocket_initialized'):
-#         binance_client._ensure_websocket_initialized()
-
-# НЕ ВЫЗЫВАЕМ принудительную инициализацию!
-# force_websocket_init()
+# Простая автоинициализация WebSocket при импорте
+logger.info("🚀 Автоинициализация WebSocket при импорте модуля")
+if hasattr(binance_client, '_ensure_websocket_initialized'):
+    try:
+        success = binance_client._ensure_websocket_initialized()
+        if success:
+            logger.info("✅ WebSocket автоинициализация завершена успешно")
+        else:
+            logger.warning("⚠️ WebSocket автоинициализация не удалась")
+    except Exception as e:
+        logger.error(f"❌ Ошибка автоинициализации WebSocket: {e}")
+        import traceback
+        logger.error(f"💥 Traceback: {traceback.format_exc()}")
+else:
+    logger.info("📡 Обычный Binance клиент без WebSocket")
 
 logger.info(f"🎯 Binance клиент готов: {type(binance_client).__name__}")
-logger.info(f"📡 WebSocket будет запущен только при первом обращении к realtime функциям")
 
 if __name__ == "__main__":
-    # Тестирование модуля
-    print("🧪 Тестирование модуля binance_client...")
-    
-    try:
-        client = BinanceClient()
-        
-        # Тест подгонки количества
-        test_qty = client.adjust_quantity("BTCUSDT", 0.12345678)
-        print(f"✅ Подгонка количества: 0.12345678 -> {test_qty}")
-        
-        # Тест проверки режима позиций
-        mode = client.check_position_mode()
-        print(f"✅ Режим позиций: {mode}")
-        
-        # Тест получения позиций (только если есть API ключи)
-        positions = client.get_positions()
-        print(f"✅ Активных позиций: {len(positions)}")
-        
-    except Exception as e:
-        print(f"❌ Ошибка тестирования: {e}")
-        print("💡 Убедитесь, что API ключи настроены в .env файле")
+    print("🧪 Тестирование отключено")
