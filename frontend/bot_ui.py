@@ -1,10 +1,12 @@
 import sys
-# import os  # Удалить если не нужен getcwd()
 
 from flask import Flask, render_template, request, jsonify
 from ui.auth import auth_manager
 from ui.routes import route_handlers
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
@@ -59,6 +61,14 @@ def restore_orders_api():
         return response.json(), response.status_code
     except Exception as e:
         return {'status': 'error', 'message': str(e)}, 500
+    
+@app.context_processor
+def inject_globals():
+    return {
+        'status': route_handlers.get_status(),
+        'server_host': os.getenv('SERVER_HOST', 'localhost'),
+        'grafana_url': os.getenv('GRAFANA_URL', '/grafana/')
+    }
         
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot UI...")

@@ -46,7 +46,7 @@
                     🗄️ Database Admin
                 </a>
 
-                <a href="http://49.12.233.74/grafana/" target="_blank" class="nav-item">
+                <a href="{{ grafana_url }}" target="_blank" class="nav-item">
                     📊 Grafana
                 </a>
 
@@ -101,7 +101,7 @@
                 <a href="/admin" class="mobile-nav-item" target="_blank">
                     🗄️ Database Admin
                 </a>
-                <a href="http://49.12.233.74/grafana/" target="_blank" class="mobile-nav-item">
+                <a href="{{ grafana_url }}" target="_blank" class="mobile-nav-item">
                     📊 Grafana
                 </a>
                 <a href="/order_history" class="mobile-nav-item {% if request.endpoint == 'order_history' %}mobile-nav-item--active{% endif %}">
