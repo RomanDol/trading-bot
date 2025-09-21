@@ -2,7 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!window.TradingBotUI) {
-        console.error('TradingBotUI не загружен');
         return;
     }
     

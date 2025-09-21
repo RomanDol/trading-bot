@@ -5,6 +5,7 @@ from ui.auth import auth_manager
 from ui.routes import route_handlers
 import os
 from dotenv import load_dotenv
+import socket 
 
 load_dotenv()
 app = Flask(__name__)
@@ -67,7 +68,8 @@ def inject_globals():
     return {
         'status': route_handlers.get_status(),
         'server_host': os.getenv('SERVER_HOST', 'localhost'),
-        'grafana_url': os.getenv('GRAFANA_URL', '/grafana/')
+        'grafana_url': os.getenv('GRAFANA_URL', '/grafana/'),
+        'server_name': os.getenv('SERVER_NAME')
     }
         
 if __name__ == '__main__':
