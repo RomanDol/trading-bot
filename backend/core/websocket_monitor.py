@@ -78,7 +78,7 @@ class SimpleBinanceWebSocket:
             self.stop_recovery()
             logger.info("WebSocket восстановлен - остановка автовосстановления")
         
-        ws.pong(payload)
+        
 
     def start(self):
         """Запускает WebSocket мониторинг"""
@@ -133,7 +133,8 @@ class SimpleBinanceWebSocket:
                     on_open=self._on_open,
                     on_message=self._on_message,
                     on_error=self._on_error,
-                    on_close=self._on_close
+                    on_close=self._on_close,
+                    on_ping=self._on_ping
                 )
                 
                 # Запускаем (блокирующий вызов)
