@@ -69,16 +69,46 @@ class SimpleBinanceWebSocket:
         """Получен ping от сервера"""
         self.last_ping_time = datetime.now()
         
-        # Логирование
-        with open('logs/ping_log.txt', 'a') as f:
-            f.write(f"{self.last_ping_time}: PING received\n")
+        log_file = 'logs/ping_log.txt'
+        max_lines = 100
+        
+        # Добавляем новую запись
+        new_line = f"{self.last_ping_time}: PING received\n"
+        
+        try:
+            # Читаем существующие строки
+            try:
+                with open(log_file, 'r') as f:
+                    lines = f.readlines()
+            except FileNotFoundError:
+                lines = []
+            
+            # Добавляем новую строку
+            lines.append(new_line)
+            
+            # Если превысили лимит - оставляем только последние max_lines
+            if len(lines) > max_lines:
+                lines = lines[-max_lines:]  # Берем последние 100 строк
+            
+            # Перезаписываем файл
+            with open(log_file, 'w') as f:
+                f.writelines(lines)
+                
+        except Exception as e:
+            logger.error(f"Ошибка ротации ping_log: {e}")
+            # Fallback - просто добавляем запись
+            try:
+                with open(log_file, 'a') as f:
+                    f.write(new_line)
+            except:
+                pass
         
         # Останавливаем восстановление если оно было активно
         if self.recovery_active:
             self.stop_recovery()
             logger.info("WebSocket восстановлен - остановка автовосстановления")
         
-        
+        return True     
 
     def start(self):
         """Запускает WebSocket мониторинг"""
@@ -418,7 +448,7 @@ class SimpleBinanceWebSocket:
         """Мониторинг ping каждые 5 минут"""
         while self.is_running:
             try:
-                time.sleep(300)  # 5 минут
+                time.sleep(210)  # 3.5 минут
                 
                 if not self.is_running:
                     break
@@ -459,6 +489,10 @@ class SimpleBinanceWebSocket:
         
         self.recovery_active = True
         logger.info("Запуск автовосстановления данных - WebSocket неактивен")
+
+        # Логирование в ping_log.txt
+        with open('logs/ping_log.txt', 'a') as f:
+            f.write(f"{datetime.now()}: RECOVERY STARTED - WebSocket inactive\n")
         
         self.recovery_thread = threading.Thread(target=self._recovery_loop, daemon=True, name="WebSocket-Recovery")
         self.recovery_thread.start()
@@ -484,6 +518,14 @@ class SimpleBinanceWebSocket:
                     minutes_back = 2
                     logger.info(f"Восстановление за последние {minutes_back} минут")
                 
+
+
+                # Логирование начала восстановления
+                with open('logs/ping_log.txt', 'a') as f:
+                    f.write(f"{datetime.now()}: CALLING allOrders for last {minutes_back} minutes\n")
+                
+
+
                 # Вычисляем даты
                 end_date = datetime.now()
                 start_date = end_date - timedelta(minutes=minutes_back)

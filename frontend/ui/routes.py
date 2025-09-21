@@ -40,7 +40,7 @@ class RouteHandlers:
     def get_logs():
         """Получает логи сервиса"""
         try:
-            return subprocess.getoutput(f"journalctl -u {SERVICE_NAME}.service -n 30 --no-pager")
+            return subprocess.getoutput(f"journalctl -u {SERVICE_NAME}.service -n 1000 --no-pager")
         except Exception as e:
             print(f"❌ Ошибка получения логов: {e}")
             return f"Ошибка получения логов: {e}"
