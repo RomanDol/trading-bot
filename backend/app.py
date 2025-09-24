@@ -24,6 +24,8 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     """Основной endpoint для приема webhook сигналов"""
+    print(f"Raw data: {request.data}")
+    print(f"Content-Type: {request.content_type}")
     response_data, status_code = webhook_handler.process_webhook()
     return jsonify(response_data), status_code
 

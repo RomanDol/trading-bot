@@ -70,7 +70,7 @@ class SimpleBinanceWebSocket:
         self.last_ping_time = datetime.now()
         
         log_file = 'logs/ping_log.txt'
-        max_lines = 100
+        max_lines = 1000
         
         # Добавляем новую запись
         new_line = f"{self.last_ping_time}: PING received\n"

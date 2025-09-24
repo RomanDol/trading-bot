@@ -3,6 +3,7 @@
 """
 import os
 import logging
+import json
 from typing import Dict, Any, Tuple
 from flask import request
 from dotenv import load_dotenv
@@ -128,7 +129,6 @@ class WebhookHandler:
             # Извлекаем order_id из ответа Binance
             extra_data = {}
             try:
-                import json
                 response_data = json.loads(message)
                 if 'orderId' in response_data:
                     extra_data['binance_order_id'] = response_data['orderId']
@@ -152,11 +152,10 @@ class WebhookHandler:
             Tuple[Dict, int]: (ответ JSON, HTTP статус код)
         """
         try:
-            # Проверяем режим позиций
-            binance_client.check_position_mode()
-            
+
             # Получаем данные запроса
-            data = request.get_json()
+            
+            data = request.get_json(force=True)
             logger.info(f"🔔 Webhook получен: {data}")
             
             # Валидируем запрос
@@ -173,7 +172,7 @@ class WebhookHandler:
 
             # Записываем сообщение от стратегии с ответом Binance в общую базу
             try:
-                import json
+
                 strategy_message = data.copy()
                 strategy_message['e'] = 'STRATEGY_SIGNAL'
                 
