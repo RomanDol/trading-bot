@@ -4,6 +4,7 @@
 import os
 import logging
 import json
+import psycopg2
 from typing import Dict, Any, Tuple
 from flask import request
 from dotenv import load_dotenv
@@ -16,6 +17,15 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+# Настройки подключения к PostgreSQL (те же что в messages_database.py)
+DB_CONFIG = {
+    'host': os.getenv('POSTGRES_HOST', 'localhost'),
+    'port': int(os.getenv('POSTGRES_PORT', 5432)),
+    'database': os.getenv('POSTGRES_DATABASE', 'messages'),
+    'user': os.getenv('POSTGRES_USER'),
+    'password': os.getenv('POSTGRES_PASSWORD')
+}
+
 class WebhookHandler:
     """Класс для обработки webhook запросов"""
     
@@ -23,6 +33,44 @@ class WebhookHandler:
         self.signal_key = os.getenv("SIGNAL_KEY")
         if not self.signal_key:
             raise ValueError("SIGNAL_KEY должен быть установлен в .env файле")
+    
+    def get_connection(self):
+        """Создает подключение к PostgreSQL"""
+        try:
+            conn = psycopg2.connect(**DB_CONFIG)
+            return conn
+        except Exception as e:
+            logger.error(f"❌ Ошибка подключения к PostgreSQL: {e}")
+            raise
+    
+    def check_order_exists(self, str_id: str) -> bool:
+        """
+        Проверяет существует ли открытый ордер в таблице orders
+        
+        Args:
+            str_id: ID для поиска (без первых 3 символов)
+            
+        Returns:
+            bool: True если ордер найден
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute(
+                    "SELECT 1 FROM orders WHERE str_id = %s AND action LIKE 'ENTER%' LIMIT 1",
+                    (str_id,)
+                )
+                
+                result = cursor.fetchone()
+                found = result is not None
+                
+                logger.info(f"🔍 Поиск ордера str_id={str_id}: {'найден' if found else 'не найден'}")
+                return found
+                
+        except Exception as e:
+            logger.error(f"❌ Ошибка проверки ордера в базе: {e}")
+            return False
     
     def validate_request(self, data: Dict[str, Any]) -> Tuple[bool, str]:
         """
@@ -98,12 +146,13 @@ class WebhookHandler:
         
         return signal_data
     
-    def execute_trading_action(self, signal_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
+    def execute_trading_action(self, signal_data: Dict[str, Any], original_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
         """
-        Выполняет торговое действие
+        Выполняет торговое действие с проверкой существования ордера для EXIT операций
         
         Args:
             signal_data: Данные сигнала
+            original_data: Исходные данные webhook для проверки strId
             
         Returns:
             Tuple[bool, str, Dict]: (успех, сообщение, дополнительные данные)
@@ -113,6 +162,19 @@ class WebhookHandler:
         quantity = signal_data['quantity']
         
         logger.info(f"🎯 Выполнение действия: {action} {symbol} {quantity}")
+        
+        # Проверка для EXIT операций
+        if action in ['EXIT_LONG', 'EXIT_SHORT']:
+            str_id_full = original_data.get('strId')
+            if str_id_full and len(str_id_full) > 3:
+                str_id = str_id_full[3:]  # Убираем первые 3 символа
+                
+                if not self.check_order_exists(str_id):
+                    logger.warning(f"⚠️ Ордер {str_id} не найден в базе, игнорируем EXIT")
+                    return False, "Order id not found in database, signal ignored", {"srv_err": "Order id not found in database, signal ignored"}
+            else:
+                logger.warning(f"⚠️ Отсутствует или некорректный strId для EXIT операции")
+                return False, "Missing or invalid strId", {"srv_err": "Missing or invalid strId"}
         
         try:
             if action == 'ENTER_LONG':
@@ -152,9 +214,7 @@ class WebhookHandler:
             Tuple[Dict, int]: (ответ JSON, HTTP статус код)
         """
         try:
-
             # Получаем данные запроса
-            
             data = request.get_json(force=True)
             logger.info(f"🔔 Webhook получен: {data}")
             
@@ -168,18 +228,24 @@ class WebhookHandler:
             signal_data = self.extract_signal_data(data)
             
             # Выполняем торговое действие
-            success, message, binance_extra_data = self.execute_trading_action(signal_data)
+            success, message, binance_extra_data = self.execute_trading_action(signal_data, data)
 
             # Записываем сообщение от стратегии с ответом Binance в общую базу
             try:
-
                 strategy_message = data.copy()
                 strategy_message['e'] = 'STRATEGY_SIGNAL'
                 
-                # Добавляем полный ответ от Binance API в поле ba
-                if message:  # если есть ответ от API
-                    binance_response = json.loads(message) if isinstance(message, str) else message
-                    strategy_message['ba'] = binance_response
+                # Добавляем srv_err если есть
+                if 'srv_err' in binance_extra_data:
+                    strategy_message['srv_err'] = binance_extra_data['srv_err']
+                
+                # Добавляем полный ответ от Binance API в поле ba (только если был вызов API)
+                if success and message:
+                    try:
+                        binance_response = json.loads(message) if isinstance(message, str) else message
+                        strategy_message['ba'] = binance_response
+                    except:
+                        pass
                 
                 messages_db_manager.log_message('STRATEGY_SIGNAL', strategy_message)
             except Exception as e:
@@ -191,23 +257,19 @@ class WebhookHandler:
             
             logger.info(f"📌 Webhook обработан: {'success' if success else 'error'}")
             
-            # Формируем ответ
+            # Формируем упрощенный ответ
             response = {
-                'status': 'success' if success else 'error',
-                'message': message,
-                'action': signal_data['action'],
-                'symbol': signal_data['symbol'],
-                'quantity': signal_data['quantity']
+                'status': 'success',
+                'message': 'OK'
             }
             
-            status_code = 200 if success else 500
-            return response, status_code
+            return response, 200
             
         except Exception as e:
             error_msg = f"Критическая ошибка обработки webhook: {str(e)}"
             logger.error(f"💥 {error_msg}")
             
-            return {"status": "error", "message": "Внутренняя ошибка сервера"}, 500
+            return {"status": "error", "message": "Internal server error"}, 500
 
 # Создаем глобальный экземпляр для использования в приложении
 webhook_handler = WebhookHandler()
