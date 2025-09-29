@@ -43,7 +43,7 @@ class WebhookHandler:
             logger.error(f"❌ Ошибка подключения к PostgreSQL: {e}")
             raise
     
-    def check_order_exists(self, str_id: str) -> bool:
+    def check_order_exists(self, str_id: str, strategy: dict = None) -> bool:
         """
         Проверяет существует ли открытый ордер в таблице orders
         
@@ -145,17 +145,9 @@ class WebhookHandler:
         
         return signal_data
     
+
+
     def execute_trading_action(self, signal_data: Dict[str, Any], original_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
-        """
-        Выполняет торговое действие с проверкой существования ордера для EXIT операций
-        
-        Args:
-            signal_data: Данные сигнала
-            original_data: Исходные данные webhook для проверки strId
-            
-        Returns:
-            Tuple[bool, str, Dict]: (успех, сообщение, дополнительные данные)
-        """
         action = signal_data['action']
         symbol = signal_data['symbol']
         quantity = signal_data['quantity']
@@ -166,15 +158,17 @@ class WebhookHandler:
         if action in ['EXIT_LONG', 'EXIT_SHORT']:
             str_id_full = original_data.get('strId')
             if str_id_full and len(str_id_full) > 3:
-                str_id = str_id_full[3:]  # Убираем первые 3 символа
+                str_id = str_id_full[3:]
+                strategy = original_data.get('strategy')  # Добавили получение strategy
 
-                if not self.check_order_exists(str_id):
+                if not self.check_order_exists(str_id, strategy):  # Передаем strategy
                     logger.warning(f"⚠️ Ордер {str_id} не найден в базе, игнорируем EXIT")
                     return False, "Order id not found in database, signal ignored", {"srv_err": "Order id not found in database, signal ignored"}
             else:
                 logger.warning(f"⚠️ Отсутствует или некорректный strId для EXIT операции")
                 return False, "Missing or invalid strId", {"srv_err": "Missing or invalid strId"}
         
+        # Остальной код без изменений
         try:
             if action == 'ENTER_LONG':
                 success, message = binance_client.open_position(symbol, 'LONG', quantity)
@@ -187,7 +181,6 @@ class WebhookHandler:
             else:
                 return False, f"Неизвестное действие: {action}", {}
             
-            # Извлекаем order_id из ответа Binance
             extra_data = {}
             try:
                 response_data = json.loads(message)
@@ -204,6 +197,8 @@ class WebhookHandler:
             error_msg = f"Ошибка выполнения {action}: {str(e)}"
             logger.error(f"❌ {error_msg}")
             return False, error_msg, {}
+
+
 
     def process_webhook(self) -> Tuple[Dict[str, Any], int]:
         """
