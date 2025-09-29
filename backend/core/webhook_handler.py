@@ -58,8 +58,7 @@ class WebhookHandler:
                 cursor = conn.cursor()
                 
                 cursor.execute(
-                    "SELECT 1 FROM orders WHERE str_id = %s AND action LIKE 'ENTER%' LIMIT 1",
-                    (str_id,)
+                    "SELECT 1 FROM orders WHERE str_id = %s AND action LIKE %s LIMIT 1", (str_id, 'ENTER%')
                 )
                 
                 result = cursor.fetchone()
@@ -168,7 +167,7 @@ class WebhookHandler:
             str_id_full = original_data.get('strId')
             if str_id_full and len(str_id_full) > 3:
                 str_id = str_id_full[3:]  # Убираем первые 3 символа
-                
+
                 if not self.check_order_exists(str_id):
                     logger.warning(f"⚠️ Ордер {str_id} не найден в базе, игнорируем EXIT")
                     return False, "Order id not found in database, signal ignored", {"srv_err": "Order id not found in database, signal ignored"}
