@@ -43,7 +43,7 @@ class WebhookHandler:
             logger.error(f"❌ Ошибка подключения к PostgreSQL: {e}")
             raise
     
-    def check_order_exists(self, str_id: str, strategy: dict = None) -> bool:
+    def check_order_exists(self, str_id: str) -> bool:
         """
         Проверяет существует ли открытый ордер в таблице orders
         
@@ -58,7 +58,7 @@ class WebhookHandler:
                 cursor = conn.cursor()
                 
                 cursor.execute(
-                    "SELECT 1 FROM orders WHERE str_id = %s AND action LIKE %s LIMIT 1", (str_id, 'ENTER%')
+                    "SELECT 1 FROM orders WHERE str_id = %s LIMIT 1", (str_id,)
                 )
                 
                 result = cursor.fetchone()
@@ -159,9 +159,8 @@ class WebhookHandler:
             str_id_full = original_data.get('strId')
             if str_id_full and len(str_id_full) > 3:
                 str_id = str_id_full[3:]
-                strategy = original_data.get('strategy')  # Добавили получение strategy
 
-                if not self.check_order_exists(str_id, strategy):  # Передаем strategy
+                if not self.check_order_exists(str_id):
                     logger.warning(f"⚠️ Ордер {str_id} не найден в базе, игнорируем EXIT")
                     return False, "Order id not found in database, signal ignored", {"srv_err": "Order id not found in database, signal ignored"}
             else:
@@ -233,13 +232,10 @@ class WebhookHandler:
                 if 'srv_err' in binance_extra_data:
                     strategy_message['srv_err'] = binance_extra_data['srv_err']
                 
-                # Добавляем полный ответ от Binance API в поле ba (только если был вызов API)
-                if success and message:
-                    try:
-                        binance_response = json.loads(message) if isinstance(message, str) else message
-                        strategy_message['ba'] = binance_response
-                    except:
-                        pass
+                # Добавляем полный ответ от Binance API в поле ba
+                if message:  # если есть ответ от API
+                    binance_response = json.loads(message) if isinstance(message, str) else message
+                    strategy_message['ba'] = binance_response
                 
                 messages_db_manager.log_message('STRATEGY_SIGNAL', strategy_message)
             except Exception as e:
