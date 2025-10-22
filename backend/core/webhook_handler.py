@@ -154,19 +154,26 @@ class WebhookHandler:
         
         logger.info(f"🎯 Выполнение действия: {action} {symbol} {quantity}")
         
-        # Проверка для EXIT операций
-        if action in ['EXIT_LONG', 'EXIT_SHORT']:
-            str_id_full = original_data.get('strId')
-            if str_id_full and len(str_id_full) > 3:
-                str_id = str_id_full[3:]
+        # Проверка strId
+        str_id_full = original_data.get('strId')
+        if str_id_full and len(str_id_full) > 3:
+            str_id = str_id_full[3:]
+            order_exists = self.check_order_exists(str_id)
+            
+            # Для EXIT - ордер должен существовать
+            if action in ['EXIT_LONG', 'EXIT_SHORT'] and not order_exists:
+                logger.warning(f"⚠️ Ордер {str_id} не найден в базе, игнорируем EXIT")
+                return False, "", {"srv_err": "Order id not found in database, signal ignored"}
+            
+            # Для ENTER - ордер НЕ должен существовать
+            if action in ['ENTER_LONG', 'ENTER_SHORT'] and order_exists:
+                logger.warning(f"⚠️ Ордер {str_id} уже закрыт ранее, игнорируем ENTER")
+                return False, "", {"srv_err": "Order already closed, signal ignored"}
+        else:
+            logger.warning(f"⚠️ Отсутствует или некорректный strId")
+            return False, "", {"srv_err": "Missing or invalid strId"}
 
-                if not self.check_order_exists(str_id):
-                    logger.warning(f"⚠️ Ордер {str_id} не найден в базе, игнорируем EXIT")
-                    return False, "Order id not found in database, signal ignored", {"srv_err": "Order id not found in database, signal ignored"}
-            else:
-                logger.warning(f"⚠️ Отсутствует или некорректный strId для EXIT операции")
-                return False, "Missing or invalid strId", {"srv_err": "Missing or invalid strId"}
-        
+
         # Остальной код без изменений
         try:
             if action == 'ENTER_LONG':
