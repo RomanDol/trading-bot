@@ -8,6 +8,7 @@ from core.order_restore import order_restore_manager
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from core.binance_symbols import binance_symbols_manager
 
 # Настройка логирования
 logging.basicConfig(
@@ -35,6 +36,24 @@ def restore_orders():
     success, message = order_restore_manager.restore_orders(data['start_date'], data['end_date'])
     return jsonify({'status': 'success' if success else 'error', 'message': message})
 
+
+
+@app.route('/api/update_symbols', methods=['POST'])
+def update_symbols():
+    """Обновление списка символов Binance"""
+    try:
+        success, message = binance_symbols_manager.update_symbols()
+        return jsonify({
+            'status': 'success' if success else 'error',
+            'message': message
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Ошибка обновления символов: {str(e)}'
+        }), 500
+
+
 def check_auth(username, password):
     return username == os.getenv('UI_USERNAME') and password == os.getenv('UI_PASSWORD')
 
@@ -56,6 +75,7 @@ def auth_middleware():
     if request.path == '/webhook':
         return None
     return require_auth()
+
 
 if __name__ == '__main__':
     print("🚀 Запуск Trading Bot с WebSocket мониторингом...")

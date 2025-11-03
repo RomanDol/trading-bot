@@ -1,6 +1,67 @@
 // ===== ORDER HISTORY PAGE JAVASCRIPT =====
 
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== UPDATE SYMBOLS SECTION =====
+    const updateSymbolsBtn = document.getElementById('update-symbols-btn');
+    const symbolsMessage = document.getElementById('symbols-message');
+    
+    if (updateSymbolsBtn) {
+        updateSymbolsBtn.addEventListener('click', async function() {
+            // Показываем состояние загрузки
+            updateSymbolsBtn.disabled = true;
+            updateSymbolsBtn.textContent = '⏳ Обновляем...';
+            hideSymbolsMessage();
+            
+            try {
+                const response = await fetch('/api/update_symbols', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.status === 'success') {
+                    showSymbolsMessage(result.message || 'Символы успешно обновлены', 'success');
+                } else {
+                    showSymbolsMessage(result.message || 'Ошибка обновления символов', 'error');
+                }
+                
+            } catch (error) {
+                showSymbolsMessage('Ошибка соединения с сервером', 'error');
+            } finally {
+                updateSymbolsBtn.disabled = false;
+                updateSymbolsBtn.textContent = '🔄 Update Symbols List';
+            }
+        });
+    }
+    
+    function showSymbolsMessage(text, type) {
+        symbolsMessage.textContent = text;
+        symbolsMessage.className = `message message--${type}`;
+        symbolsMessage.style.display = 'block';
+    }
+    
+    function hideSymbolsMessage() {
+        symbolsMessage.style.display = 'none';
+    }
+    
+    function getAuthCredentials() {
+        // Извлекаем credentials из текущей сессии браузера
+        // Браузер автоматически отправляет Basic Auth заголовки
+        const auth = document.cookie.split('; ')
+            .find(row => row.startsWith('auth='));
+        
+        if (auth) {
+            return auth.split('=')[1];
+        }
+        
+        // Fallback - просим браузер использовать сохраненные credentials
+        return '';
+    }
+    
+    // ===== ORDER HISTORY SECTION (существующий код) =====
     const form = document.getElementById('order-history-form');
     const loadButton = document.getElementById('load-button');
     const message = document.getElementById('message');
@@ -19,22 +80,22 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-    const startDate = document.getElementById('start-datetime').value;
-    const endDate = document.getElementById('end-datetime').value;
+        const startDate = document.getElementById('start-datetime').value;
+        const endDate = document.getElementById('end-datetime').value;
 
-    if (!startDate || !endDate) {
-        showMessage('Заполните обе даты', 'error');
-        return;
-    }
+        if (!startDate || !endDate) {
+            showMessage('Заполните обе даты', 'error');
+            return;
+        }
 
-    if (startDate > endDate) {
-        showMessage('Начальная дата не может быть больше конечной', 'error');
-        return;
-    }
+        if (startDate > endDate) {
+            showMessage('Начальная дата не может быть больше конечной', 'error');
+            return;
+        }
 
-// Преобразуем формат для backend
-const formattedStartDate = startDate.replace('T', ' ') + ':00';
-const formattedEndDate = endDate.replace('T', ' ') + ':00';
+        // Преобразуем формат для backend
+        const formattedStartDate = startDate.replace('T', ' ') + ':00';
+        const formattedEndDate = endDate.replace('T', ' ') + ':00';
         
         // Показываем состояние загрузки
         loadButton.disabled = true;
@@ -43,10 +104,10 @@ const formattedEndDate = endDate.replace('T', ' ') + ':00';
         
         try {
             const response = await fetch('/api/restore_orders', {
-               method: 'POST',
-               headers: {
-                  'Content-Type': 'application/json',
-               },
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     start_date: formattedStartDate,
                     end_date: formattedEndDate

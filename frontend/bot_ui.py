@@ -11,12 +11,20 @@ load_dotenv()
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
-@app.context_processor
-def inject_globals():
-    return {'status': route_handlers.get_status()}
+# @app.context_processor
+# def inject_globals():
+#     return {
+#         'status': route_handlers.get_status(),
+#         'server_host': os.getenv('SERVER_HOST', 'localhost'),
+#         'grafana_url': os.getenv('GRAFANA_URL', '/grafana/'),
+#         'server_name': os.getenv('SERVER_NAME')
+#     }
 
 @app.before_request
 def auth_middleware():
+    # Пропускаем API endpoints - авторизация проверяется внутри
+    if request.path.startswith('/api/'):
+        return None
     return auth_manager.require_auth()
 
 @app.route('/', endpoint='dashboard')
@@ -63,6 +71,24 @@ def restore_orders_api():
     except Exception as e:
         return {'status': 'error', 'message': str(e)}, 500
     
+
+@app.route('/api/update_symbols', methods=['POST'])
+def update_symbols_proxy():
+    try:
+        import requests
+        
+        auth = request.authorization
+        
+        response = requests.post(
+            'http://localhost:5000/api/update_symbols',
+            timeout=30,
+            auth=(auth.username, auth.password)
+        )
+        
+        return response.json(), response.status_code
+    except Exception as e:
+        return {'status': 'error', 'message': str(e)}, 500
+
 @app.context_processor
 def inject_globals():
     return {
