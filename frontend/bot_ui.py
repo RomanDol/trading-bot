@@ -11,18 +11,11 @@ load_dotenv()
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
-# @app.context_processor
-# def inject_globals():
-#     return {
-#         'status': route_handlers.get_status(),
-#         'server_host': os.getenv('SERVER_HOST', 'localhost'),
-#         'grafana_url': os.getenv('GRAFANA_URL', '/grafana/'),
-#         'server_name': os.getenv('SERVER_NAME')
-#     }
+
 
 @app.before_request
 def auth_middleware():
-    # Пропускаем API endpoints - авторизация проверяется внутри
+    
     if request.path.startswith('/api/'):
         return None
     return auth_manager.require_auth()
@@ -103,7 +96,7 @@ if __name__ == '__main__':
     print(f"👤 Пользователь: {auth_manager.username}")  
     print(f"🔐 Пароль: {'*' * len(auth_manager.password)}")
     print(f"🌐 Адрес: http://49.12.233.74:8888")
-    # Убрали print с os.getcwd()
+   
     
     app.run(host='0.0.0.0', port=8888, debug=True)
 

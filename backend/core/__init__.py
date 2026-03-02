@@ -1,7 +1,4 @@
-"""
-Основные модули Trading Bot
-Убраны SQLite базы - остался только PostgreSQL
-"""
+
 
 from .binance_client import binance_client
 from .webhook_handler import webhook_handler

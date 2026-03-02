@@ -1,6 +1,4 @@
-"""
-Главное Flask приложение для приема webhook сигналов и торговли
-"""
+
 import logging
 from flask import Flask, jsonify, request, Response
 from core.webhook_handler import webhook_handler
@@ -10,17 +8,17 @@ import os
 from dotenv import load_dotenv
 from core.binance_symbols import binance_symbols_manager
 
-# Настройка логирования
+# Setting up logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# Создание Flask приложения
+
 app = Flask(__name__)
 
-# ===== ОСНОВНЫЕ МАРШРУТЫ =====
+# ===== MAIN ROUTES =====
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -71,7 +69,7 @@ def require_auth():
 
 @app.before_request
 def auth_middleware():
-    # Только webhook остается без аутентификации для TradingView
+    # Only the webhook remains unauthenticated for TradingView
     if request.path == '/webhook':
         return None
     return require_auth()
@@ -84,7 +82,7 @@ if __name__ == '__main__':
     print("📈 Real-time позиции: http://localhost:5000/realtime_positions")
     print("🔧 WebSocket статистика: http://localhost:5000/websocket_stats")
     
-    # УБРАЛИ дублирующую инициализацию WebSocket - она теперь в binance_client.py
+    # REMOVED duplicate WebSocket initialization - it is now in binance_client.py
     print("📡 WebSocket инициализируется автоматически при импорте binance_client")
     
     app.run(host='0.0.0.0', port=5000, debug=False)

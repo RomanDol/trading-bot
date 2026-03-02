@@ -11,12 +11,12 @@ import json
 import threading
 import atexit
 
-# Настройка логирования
+
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# ИСПРАВЛЕНИЕ 1: Глобальная блокировка инициализации WebSocket
+
 _websocket_init_lock = threading.Lock()
 _websocket_initialized = False
 _global_websocket_instance = None
@@ -195,7 +195,7 @@ class BinanceClient:
             logger.error(f"❌ Ошибка получения позиций: {e}")
             return []
 
-# ===== ИСПРАВЛЕННАЯ WEBSOCKET ИНТЕГРАЦИЯ =====
+
 
 class BinanceClientWithWebSocket(BinanceClient):
     """Binance клиент с WebSocket мониторингом БЕЗ МНОЖЕСТВЕННОЙ ИНИЦИАЛИЗАЦИИ"""
@@ -204,8 +204,7 @@ class BinanceClientWithWebSocket(BinanceClient):
         super().__init__()
         self.ws_monitor = None
         
-        # ИСПРАВЛЕНИЕ 2: НЕ запускаем WebSocket автоматически
-        # Инициализация будет только по явному запросу
+
 
     def _ensure_websocket_initialized(self):
         """Обеспечивает инициализацию WebSocket ТОЛЬКО ОДИН РАЗ глобально"""
@@ -240,7 +239,7 @@ class BinanceClientWithWebSocket(BinanceClient):
                 if success:
                     _websocket_initialized = True
                     
-                    # ИСПРАВЛЕНИЕ 3: Регистрируем очистку при завершении программы
+                  
                     atexit.register(self._cleanup_websocket)
                     
                     logger.info("✅ WebSocket мониторинг успешно инициализирован ОДИН РАЗ")
@@ -301,7 +300,7 @@ class BinanceClientWithWebSocket(BinanceClient):
         
         return self.ws_monitor.get_stats() if self.ws_monitor else {"is_connected": False, "error": "No monitor instance"}
 
-# ИСПРАВЛЕНИЕ 4: Безопасное создание клиента без автоинициализации WebSocket
+
 def create_binance_client():
     """Фабрика для создания Binance клиента"""
     try:
